@@ -3,6 +3,11 @@
 #include <WS2tcpip.h>
 #pragma comment(lib, "Ws2_32.lib")
 
+struct botnet_pack
+{
+	BYTE boot_strap : 1;
+};
+
 #ifdef __cplusplus
 extern "C"
 {
