@@ -18,24 +18,24 @@
     <ClCompile Include="src\Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="network.c">
+    <ClCompile Include="src\Communication.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Communication.cpp">
+    <ClCompile Include="src\network.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NetworkTree.cpp">
+    <ClCompile Include="src\NetworkTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="network.h">
+    <ClInclude Include="src\Communication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Communication.h">
+    <ClInclude Include="src\network.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NetworkTree.h">
+    <ClInclude Include="src\NetworkTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
