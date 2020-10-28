@@ -3,7 +3,7 @@
 #include "NetworkTree.h"
 #include "network.h"
 
-static void send_broadcast_msg(const SOCKET& udp_sock)
+void NetworkTree::send_broadcast_msg(const SOCKET& udp_sock)
 {
 	//TODO - multiple networks
 	ULONG32 host, netmask;
@@ -29,6 +29,11 @@ static void send_broadcast_msg(const SOCKET& udp_sock)
 	sendto(udp_sock, buf, sizeof(buf), 0, (struct sockaddr*)&addr, sizeof(addr));
 }
 
+void get_network_status()
+{
+	
+}
+
 NetworkTree::NetworkTree(
 	const SOCKET& udp_sock,
 	const SOCKET& tcp_sock
@@ -43,3 +48,4 @@ NetworkTree::NetworkTree(
 	//Manage incoming connections (TCP).
 	
 }
+
