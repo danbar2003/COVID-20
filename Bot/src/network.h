@@ -19,6 +19,7 @@ extern "C"
 
 	extern const INTERFACE_INFO InterfaceList[20];
 
+	int check(int exp, const char *msg);
 	int init_winsock();
 	int init_network_settings();
 #ifdef __cplusplus

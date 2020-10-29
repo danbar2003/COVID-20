@@ -8,31 +8,35 @@ const int MAX_IPSTR_BUF_SIZE = 5 * 3 + 1; // 4 times xxx (255 fe) + 3 dots + nul
 
 const INTERFACE_INFO InterfaceList[20];
 
+int check(int exp, const char* msg)
+{
+	if (exp == SOCKET_ERROR)
+	{
+		perror(msg);
+		exit(1);
+	}
+	return exp;
+}
+
 int init_winsock()
 {
 	WSADATA data;
 	WORD ver = MAKEWORD(2, 2);
 	int wsock = WSAStartup(ver, &data);
 
-	if (wsock != 0)
-		return 1; //TODO - modify it.
-	return 0;
+	check(wsock, "init_winsock error");
 }
 
 int init_network_settings()
 {
 
 	SOCKET sd = WSASocket(AF_INET, SOCK_DGRAM, 0, 0, 0, 0);
-	if (sd == SOCKET_ERROR) {
-		return 1;
-	}
+	check(sd, "error init_network_settings building socket");
 
 	int nBytesReturned;
-	if (WSAIoctl(sd, SIO_GET_INTERFACE_LIST, 0, 0, &InterfaceList,
-		sizeof(InterfaceList), &nBytesReturned, 0, 0) == SOCKET_ERROR) {
-		printf("%s %d\n", "Failed calling WSAIoctl: error ", WSAGetLastError());
-		return 1;
-	}
+	check(WSAIoctl(sd, SIO_GET_INTERFACE_LIST, 0, 0, &InterfaceList,
+		sizeof(InterfaceList), &nBytesReturned, 0, 0), "init_network_settings WSALoctl error ");
+	
 	closesocket(sd);
 	return 0;
 }

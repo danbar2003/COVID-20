@@ -29,7 +29,7 @@ void NetworkTree::send_broadcast_msg(const SOCKET& udp_sock)
 	sendto(udp_sock, buf, sizeof(buf), 0, (struct sockaddr*)&addr, sizeof(addr));
 }
 
-void get_network_status()
+void NetworkTree::get_network_status(const SOCKET& tcp_sock, const SOCKET& udp_sock)
 {
 	
 }

@@ -38,7 +38,6 @@ Communication::Communication()
 		exit(1);
 	}
 
-	listen(tcp_sock, SOMAXCONN);
 	//tcp_sock = tcp;
 	NetTree = new NetworkTree(udp_sock, tcp_sock);
 

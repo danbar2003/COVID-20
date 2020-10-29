@@ -13,6 +13,8 @@ private:
 private:
 	void send_broadcast_msg(const SOCKET& udp_sock);
 
+	void get_network_status(const SOCKET& tcp_sock, const SOCKET& udp_sock);
+
 public:
 	NetworkTree(const SOCKET& udp_sock, const SOCKET& tcp_sock);
 
