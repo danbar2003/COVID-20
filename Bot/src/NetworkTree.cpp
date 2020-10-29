@@ -3,8 +3,8 @@
 #include "NetworkTree.h"
 #include "network.h"
 
-void NetworkTree::AddData(void* data)
+void NetworkTree::AddData(void* const data)
 {
-
+	
 }
 

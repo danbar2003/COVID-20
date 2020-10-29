@@ -12,10 +12,11 @@ private:
 	NetworkTree* NetTree;
 
 private:
-	void HandleSyncReplies();
 
 public:
 	Communication();
 	~Communication();
-	void Sync();
+
+	void SyncRequest();
+	void HandleIncomings();
 };
