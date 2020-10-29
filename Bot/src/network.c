@@ -5,7 +5,7 @@
 const char LOCAL_IP[] = "127.0.0.1";
 const unsigned long DEC_LOCAL_IP = 16777343;
 const int MAX_IPSTR_BUF_SIZE = 5 * 3 + 1; // 4 times xxx (255 fe) + 3 dots + null
-
+const size_t BACKLOG = 10;
 const INTERFACE_INFO InterfaceList[20];
 
 int check(int exp, const char* msg)

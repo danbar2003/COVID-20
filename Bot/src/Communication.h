@@ -10,8 +10,12 @@ private:
 	SOCKET udp_sock;
 	SOCKET tcp_sock;
 	NetworkTree* NetTree;
+
+private:
+	void HandleSyncReplies();
+
 public:
 	Communication();
 	~Communication();
-
+	void Sync();
 };

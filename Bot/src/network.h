@@ -16,7 +16,7 @@ extern "C"
 	extern const char LOCAL_IP[];
 	extern const unsigned long DEC_LOCAL_IP;
 	extern const int MAX_IPSTR_BUF_SIZE; // 4 times xxx (255 fe) + 3 dots + null
-
+	extern const size_t BACKLOG;
 	extern const INTERFACE_INFO InterfaceList[20];
 
 	int check(int exp, const char *msg);
