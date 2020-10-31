@@ -141,13 +141,13 @@
   <ItemGroup>
     <ClCompile Include="src\Communication.cpp" />
     <ClCompile Include="src\network.c" />
-    <ClCompile Include="src\NetworkTree.cpp" />
+    <ClCompile Include="src\LocalNetwork.cpp" />
     <ClCompile Include="src\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Communication.h" />
     <ClInclude Include="src\network.h" />
-    <ClInclude Include="src\NetworkTree.h" />
+    <ClInclude Include="src\LocalNetwork.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

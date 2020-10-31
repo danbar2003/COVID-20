@@ -24,7 +24,7 @@
     <ClCompile Include="src\network.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\NetworkTree.cpp">
+    <ClCompile Include="src\LocalNetwork.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,7 +35,7 @@
     <ClInclude Include="src\network.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\NetworkTree.h">
+    <ClInclude Include="src\LocalNetwork.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -2,21 +2,21 @@
 #include <WS2tcpip.h>
 #pragma comment(lib, "Ws2_32.lib")
 
-#include "NetworkTree.h"
+#include "LocalNetwork.h"
 
 class Communication
 {
 private:
 	SOCKET udp_sock;
 	SOCKET tcp_sock;
-	NetworkTree* NetTree;
+	LocalNetwork network;
 
 private:
-
+	void SendReply(struct sockaddr_in& client);
 public:
 	Communication();
-	~Communication();
 
 	void SyncRequest();
-	void HandleIncomings();
+	void HandleIncomingsUDP();
+	void HandleIncomingsTCP();
 };

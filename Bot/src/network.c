@@ -6,6 +6,7 @@ const char LOCAL_IP[] = "127.0.0.1";
 const unsigned long DEC_LOCAL_IP = 16777343;
 const int MAX_IPSTR_BUF_SIZE = 5 * 3 + 1; // 4 times xxx (255 fe) + 3 dots + null
 const size_t BOTNET_PACK_SIZE = sizeof(struct botnet_pack);
+const size_t BACKLOG = 10;
 const INTERFACE_INFO InterfaceList[20];
 
 int check(int exp, const char* msg)
@@ -18,7 +19,7 @@ int check(int exp, const char* msg)
 	return exp;
 }
 
-int init_winsock()
+void init_winsock()
 {
 	WSADATA data;
 	WORD ver = MAKEWORD(2, 2);
@@ -27,7 +28,7 @@ int init_winsock()
 	check(wsock, "init_winsock error");
 }
 
-int init_network_settings()
+void init_network_settings()
 {
 
 	SOCKET sd = WSASocket(AF_INET, SOCK_DGRAM, 0, 0, 0, 0);
@@ -38,5 +39,4 @@ int init_network_settings()
 		sizeof(InterfaceList), &nBytesReturned, 0, 0), "init_network_settings WSALoctl error ");
 	
 	closesocket(sd);
-	return 0;
 }
