@@ -19,5 +19,6 @@ void LocalNetwork::AddHost(u_long host)
 	{
 		next_hosts.push_back(host);
 	}
+
 }
 

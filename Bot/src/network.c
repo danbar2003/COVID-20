@@ -40,5 +40,6 @@ void init_network_settings()
 	
 	//TODO
 	DEC_MY_IP = InterfaceList[1].iiAddress.AddressIn.sin_addr.S_un.S_addr;
+
 	closesocket(sd);
 }

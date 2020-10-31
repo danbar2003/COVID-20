@@ -110,10 +110,10 @@ void Communication::HandleIncomingsUDP()
 	{
 		ZeroMemory(&client, client_size);
 		memset(buf, 0, BOTNET_PACK_SIZE);
-		
+    		
 		if (client.sin_addr.S_un.S_addr == DEC_MY_IP)
 			continue;
-
+    
 		recvfrom(udp_sock, buf, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&client, &client_size);
 		
 		switch (p->type)
