@@ -18,6 +18,6 @@ void LocalNetwork::AddHost(u_long host)
 	if (std::find(next_hosts.begin(), next_hosts.end(), host) == next_hosts.end())
 	{
 		next_hosts.push_back(host);
-	};
+	}
 }
 
