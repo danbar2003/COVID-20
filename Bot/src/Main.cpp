@@ -13,10 +13,7 @@ int main()
 	std::thread udp_incomings = std::thread([=] { communication->HandleIncomingsUDP(); });
 	std::thread tcp_incomings = std::thread([=] { communication->HandleIncomingsTCP(); });
 
-	while (1)
-	{
-		communication->SyncRequest();
-	}
+	communication->SyncRequest();
 
 	std::cin.get();
 }

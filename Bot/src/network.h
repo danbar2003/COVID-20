@@ -17,7 +17,6 @@ enum PACK_TYPE
 struct botnet_pack
 {
 	enum PACK_TYPE type;
-	BYTE data[65000];
 };
 
 #ifdef __cplusplus

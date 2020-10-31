@@ -7,7 +7,7 @@
 //Private
 void Communication::SendReply(struct sockaddr_in& client)
 {
-	char* buf = (char*)malloc(sizeof(int));
+	char* buf = (char*)malloc(BOTNET_PACK_SIZE);
 	if (buf == nullptr)
 	{
 		perror("can't malloc SendReply");
@@ -15,8 +15,8 @@ void Communication::SendReply(struct sockaddr_in& client)
 	}
 
 	struct botnet_pack* p = (struct botnet_pack*)buf;
-	p->type = SYNC_REPLY;
-	sendto(udp_sock, buf, sizeof(int), 0, (struct sockaddr*)&client, sizeof(client));
+	p->type = PACK_TYPE::SYNC_REPLY;
+	sendto(udp_sock, buf, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&client, sizeof(client));
 
 	free(buf);
 }
@@ -26,6 +26,9 @@ Communication::Communication()
 	udp_sock = socket(AF_INET, SOCK_DGRAM, 0);
 	check(udp_sock, "can't create udp_sock");
 	
+	int trueflag = 1;
+	setsockopt(udp_sock, SOL_SOCKET, SO_BROADCAST, (char*)&trueflag, sizeof(trueflag));
+
 	// Create a server hint structure for the server
 	struct sockaddr_in serverHint;
 	serverHint.sin_addr.S_un.S_addr = ADDR_ANY; // Us any IP address available on the machine
@@ -110,12 +113,12 @@ void Communication::HandleIncomingsUDP()
 	{
 		ZeroMemory(&client, client_size);
 		memset(buf, 0, BOTNET_PACK_SIZE);
-    		
-		if (client.sin_addr.S_un.S_addr == DEC_MY_IP)
-			continue;
-    
+
 		recvfrom(udp_sock, buf, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&client, &client_size);
 		
+		if (client.sin_addr.S_un.S_addr == DEC_MY_IP)
+			continue;
+
 		switch (p->type)
 		{
 		case SYNC_REPLY:
