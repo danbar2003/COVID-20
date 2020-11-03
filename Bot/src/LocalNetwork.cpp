@@ -9,7 +9,7 @@
 
 LocalNetwork::LocalNetwork()
 {
-	ip_addr = InterfaceList[1].iiAddress.AddressIn.sin_addr.S_un.S_addr;
+	ip_addr = 0;
 	next_hosts = std::vector<u_long>();
 }
 

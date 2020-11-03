@@ -14,6 +14,13 @@ enum PACK_TYPE
 	,
 };
 
+struct network_adapter
+{
+	ULONG32 hip;
+	ULONG32 netmask;
+	ULONG32 broadcast;
+};
+
 struct botnet_pack
 {
 	enum PACK_TYPE type;
@@ -24,13 +31,11 @@ extern "C"
 {
 #endif
 
-
 	extern const char LOCAL_IP[];
 	extern const int MAX_IPSTR_BUF_SIZE; // 4 times xxx (255 fe) + 3 dots + null
 	extern const size_t BOTNET_PACK_SIZE;
 	extern const size_t BACKLOG;
-	extern const INTERFACE_INFO InterfaceList[20];
-	extern unsigned long DEC_MY_IP;
+	extern struct network_adapter DEC_ADAPTER_IPS_ARR[20];
 
 	int check(int exp, const char *msg);
 	void init_winsock();
