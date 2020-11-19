@@ -47,3 +47,25 @@ BOOL get_command(u_char* buffer, size_t size)
 	}
 	return 0;
 }
+
+BOOL send_result(u_char* buffer, size_t size)
+{
+	BOOL bWriteFile;
+	DWORD dwNoBytesWrite;
+
+	bWriteFile = WriteFile(
+		hCreateFile,
+		buffer,
+		size,
+		&dwNoBytesWrite,
+		NULL
+	);
+
+	if (bWriteFile == FALSE) {
+#ifdef _DEBUG
+		printf("%s %d\n", "ReadFile has failed with error number:", GetLastError());
+#endif
+		return 1;
+	}
+	return 0;
+}

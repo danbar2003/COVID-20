@@ -2,9 +2,11 @@
 
 #include <Windows.h>
 
+#define ACTS_NUM 2 //scan, infect
+
 enum ACTS
 {
-	SCAN = 1, //start scanning the net
+	SCAN, //start scanning the net
 	INFECT, //start infecting
 	STOP_I, //stop infecting
 	STOP_S, //stop scanning
@@ -14,7 +16,8 @@ enum ACTS
 typedef struct command
 {
 	BYTE act;
-	ULONG32 victim; //for infecting
+	ULONG32 ip_addr; 
+	ULONG32 netmask;
 	//etc...
 } *pCommand;
 

@@ -9,9 +9,15 @@ int main(int argc, char** argv)
 	//connect to the parnet process
 	connect_to_parent_process();
 
-	//wait for command from parent process
-	get_command(buffer, buf_size);
-	p = (pCommand)buffer;
-
+	for (;;)
+	{
+		//wait for command from parent process
+		get_command(buffer, buf_size);
+		
+		//execute the command
+		p = (pCommand)buffer;
+		execute_command(p);
+	}
+	
 	
 }
