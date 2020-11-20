@@ -5,7 +5,6 @@
 #include "Communication.h"
 #include "network.h"
 
-
 //Private
 void Communication::SendReply(struct sockaddr_in& client)
 {
@@ -24,6 +23,7 @@ void Communication::SendReply(struct sockaddr_in& client)
 
 	free(buf);
 }
+
 //Public
 Communication::Communication()
 {
@@ -97,11 +97,11 @@ void Communication::SyncRequest()
 	free(buf);
 }
 
-//Should be run on a seperate thread
+//Should be ran on a seperate thread
 void Communication::HandleIncomingsUDP()
 {
 	char* const buf = (char*)malloc(BOTNET_PACK_SIZE);
-
+	
 	//checking pointer allocation
 	if (buf == nullptr)
 	{

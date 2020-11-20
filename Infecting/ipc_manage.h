@@ -1,3 +1,4 @@
+#pragma once
 #include <Windows.h>
 
 void connect_to_parent_process();

@@ -139,12 +139,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ipc_manage.c" />
     <ClCompile Include="src\Communication.cpp" />
     <ClCompile Include="src\network.c" />
     <ClCompile Include="src\LocalNetwork.cpp" />
     <ClCompile Include="src\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ipc_manage.h" />
     <ClInclude Include="src\Communication.h" />
     <ClInclude Include="src\network.h" />
     <ClInclude Include="src\LocalNetwork.h" />
