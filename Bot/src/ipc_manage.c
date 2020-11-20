@@ -1,9 +1,10 @@
 #include "ipc_manage.h"
 #include <stdio.h>
 
+
 static HANDLE hCreateNamedPipe;
 
-BOOL init()
+BOOL IPC_init()
 {
 	// CreateFile for Pipe
 	hCreateNamedPipe =  CreateNamedPipe(
@@ -28,7 +29,7 @@ BOOL init()
 	return 0;
 }
 
-DWORD WINAPI send_command(u_char* buffer, size_t size)
+BOOL send_command(u_char* buffer, size_t size)
 {
 	BOOL bWriteFile;
 	DWORD dwNoBytesWrite;
@@ -50,7 +51,7 @@ DWORD WINAPI send_command(u_char* buffer, size_t size)
 	return 0;
 }
 
-DWORD WINAPI get_result(u_char* buffer, size_t size)
+DWORD get_result(u_char* buffer, size_t size)
 {
 	BOOL bReadFile;
 	DWORD dwNoBytesRead;

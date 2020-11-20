@@ -2,8 +2,15 @@
 
 #include <Windows.h>
 
-BOOL init();
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+BOOL IPC_init();
 
-DWORD WINAPI send_command(u_char* buffer, size_t size);
+BOOL send_command(u_char* buffer, size_t size);
 
-DWORD WINAPI get_result(u_char* buffer, size_t size);
+DWORD get_result(u_char* buffer, size_t size);
+#ifdef __cplusplus
+}
+#endif

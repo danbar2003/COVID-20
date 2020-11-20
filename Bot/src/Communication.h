@@ -10,6 +10,7 @@ private:
 	SOCKET udp_sock;
 	SOCKET tcp_sock;
 	LocalNetwork network;
+	struct sockaddr_in master;
 
 private:
 	void SendReply(struct sockaddr_in& client);
@@ -19,4 +20,5 @@ public:
 	void SyncRequest();
 	void HandleIncomingsUDP();
 	void HandleIncomingsTCP();
+	void HandleCommandResults();
 };

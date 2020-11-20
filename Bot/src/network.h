@@ -9,6 +9,8 @@ enum PACK_TYPE
 	SYNC_REQUEST, // Used when a bot wants to tell it exists
 	SYNC_REPLY, // Used to send network structure syncs
 	VERSION_SYNC_REQUEST, //Ask for database info 
+	COMMAND,
+	COMMAND_RESULT,
 	//TCP
 	VERSION_SYNC //Sync database info
 	,

