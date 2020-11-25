@@ -29,7 +29,6 @@ void init_winsock()
 
 void init_network_settings()
 {
-
 	SOCKET sd = WSASocket(AF_INET, SOCK_DGRAM, 0, 0, 0, 0);
 	check(sd, "error init_network_settings building socket");
 
@@ -40,17 +39,20 @@ void init_network_settings()
 		sizeof(InterfaceList), &nBytesReturned, 0, 0), "init_network_settings WSALoctl error ");
 	
 	//First one is local host.
+	size_t j = 0;
 	for (size_t i = 1; i < nBytesReturned / sizeof(INTERFACE_INFO); i++)
 	{
-		struct network_adapter adapter;
-		adapter.hip = InterfaceList[i].iiAddress.AddressIn.sin_addr.S_un.S_addr;
-		adapter.netmask = InterfaceList[i].iiNetmask.AddressIn.sin_addr.S_un.S_addr;
-		adapter.broadcast = InterfaceList[i].iiBroadcastAddress.AddressIn.sin_addr.S_un.S_addr;
+		if (InterfaceList[i].iiFlags & IFF_UP)
+		{
+			struct network_adapter adapter;
+			adapter.hip = InterfaceList[i].iiAddress.AddressIn.sin_addr.S_un.S_addr;
+			adapter.netmask = InterfaceList[i].iiNetmask.AddressIn.sin_addr.S_un.S_addr;
+			adapter.broadcast = InterfaceList[i].iiBroadcastAddress.AddressIn.sin_addr.S_un.S_addr;
 
-		DEC_ADAPTER_IPS_ARR[i - 1] = adapter;
-	}
-	//TODO
-	
+			DEC_ADAPTER_IPS_ARR[j] = adapter;
+			j++;
+		}
+	}	
 
 	closesocket(sd);
 }
