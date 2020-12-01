@@ -9,6 +9,8 @@
 #define ARP_PTYPE_IPv4 0x0800 /* Internet Protocol packet */
 #define ETH_ALEN 6 /* MAC Address bytes size*/
 
+#pragma pack(1)
+
 /* Ethernet frame header */
 typedef struct {
     uint8_t dest_addr[ETH_ALEN]; /* Destination hardware address */
