@@ -8,7 +8,7 @@ BOOL IPC_init()
 {
 	// CreateFile for Pipe
 	hCreateNamedPipe =  CreateNamedPipe(
-			L"\\\\.\\pipe\\MYNAMEDPIPE",
+			L"\\\\.\\pipe\\COVID-20",
 			PIPE_ACCESS_DUPLEX,
 			PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
 			PIPE_UNLIMITED_INSTANCES,
