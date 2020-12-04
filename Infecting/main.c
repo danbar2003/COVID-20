@@ -24,5 +24,4 @@ int main(int argc, char** argv)
 		execute_command(p);
 	}
 	
-	
 }
