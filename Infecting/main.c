@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "ipc_manage.h"
 #include "commands.h"
 
@@ -11,7 +13,7 @@ int main(int argc, char** argv)
 	//connect to the parnet process
 	scan(NULL);
 	//connect_to_parent_process();
-
+	getchar();
 	for (;;)
 	{
 		//wait for command from parent process
