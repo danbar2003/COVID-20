@@ -24,16 +24,6 @@ typedef struct
 	PIP_ADAPTER_INFO adapter;
 }send_params;
 
-typedef struct
-{
-	BYTE b1;
-	BYTE b2;
-	BYTE b3;
-	BYTE b4;
-	BYTE b5;
-	BYTE b6;
-} MAC_ADDR;
-
 //globals
 static HANDLE act_threads[ACTS_NUM];
 static send_params parameters;
