@@ -16,13 +16,21 @@
 #include <malloc.h>
 #include <wchar.h>
 
+#include "ipc_manage.h"
 #include "commands.h"
+
+
+typedef struct
+{
+	u_long ip;
+	BYTE mac_addr[ETH_ALEN];
+} host;
 
 typedef struct
 {
 	pcap_t* fp;
 	PIP_ADAPTER_INFO adapter;
-}send_params;
+} send_params;
 
 //globals
 static HANDLE act_threads[ACTS_NUM];
@@ -105,17 +113,7 @@ static DWORD WINAPI send_packets(LPVOID lparam)
 
 DWORD WINAPI scan(LPVOID lparam)
 {
-	pCommand command = (pCommand)lparam;
-	
-	PIP_ADAPTER_INFO pAdapterInfo = NULL;
-	ULONG outBufLen;
-
-	GetAdaptersInfo(pAdapterInfo, &outBufLen);
-	pAdapterInfo = (PIP_ADAPTER_INFO)malloc(outBufLen);
-	if (!pAdapterInfo)
-		return 1;
-	GetAdaptersInfo(pAdapterInfo, &outBufLen);
-
+	//Winpcap
 	pcap_t* fp;
 	pcap_if_t* const alldevs, * temp;
 	struct pcap_addr* addr;
@@ -124,9 +122,20 @@ DWORD WINAPI scan(LPVOID lparam)
 	struct pcap_pkthdr* pkt_header;
 	const u_char* pkt_data = NULL;
 	ULONG32 netmask;
+	host* active_hosts;
+	//Windows
+	PIP_ADAPTER_INFO pAdapterInfo = NULL;
+	ULONG outBufLen;
 
+	GetAdaptersInfo(pAdapterInfo, &outBufLen);
+	pAdapterInfo = (PIP_ADAPTER_INFO)malloc(outBufLen);
+	active_hosts = (host*)malloc(sizeof(host) * MAX_HOSTS);
+	if (!pAdapterInfo || !active_hosts)
+		return -1;
+
+	GetAdaptersInfo(pAdapterInfo, &outBufLen);
 	pcap_findalldevs(&alldevs, NULL);
-	
+
 	for (temp = alldevs; temp; temp = temp->next)
 	{
 		/*open the adapter*/
@@ -134,7 +143,7 @@ DWORD WINAPI scan(LPVOID lparam)
 			temp->name,
 			sizeof(ether_hdr) + sizeof(arp_ether_ipv4),
 			PCAP_OPENFLAG_PROMISCUOUS,
-			1000,
+			5000,
 			NULL,
 			NULL
 		);
@@ -151,6 +160,8 @@ DWORD WINAPI scan(LPVOID lparam)
 		{
 			fprintf(stderr, "\nUnable to compile the packet filter. Check the syntax.\n");
 			/* Free the device list */
+			free(pAdapterInfo);
+			free(active_hosts);
 			pcap_freealldevs(alldevs);
 			return -1;
 		}
@@ -160,6 +171,8 @@ DWORD WINAPI scan(LPVOID lparam)
 		{
 			fprintf(stderr, "\nError setting the filter.\n");
 			/* Free the device list */
+			free(pAdapterInfo);
+			free(active_hosts);
 			pcap_freealldevs(alldevs);
 			return -1;
 		}
@@ -177,12 +190,13 @@ DWORD WINAPI scan(LPVOID lparam)
 			continue;
 		}
 
-		ether_hdr* ether_header;
 		arp_ether_ipv4* arp_header;
+		memset(active_hosts, 0, sizeof(active_hosts));
+		size_t counter = 0;
 
 		/* Retrieve the packets */
 		while ((res = pcap_next_ex(fp, &pkt_header, &pkt_data)) >= 0) {
-
+			
 			/* Timeout elapsed */
 			if (res == 0)
 			{
@@ -194,21 +208,28 @@ DWORD WINAPI scan(LPVOID lparam)
 				continue;
 			}
 
-			ether_header = (ether_hdr*)pkt_data;
 			arp_header = (arp_ether_ipv4*)(pkt_data + sizeof(ether_hdr));
 
-			struct in_addr a;
 			if (arp_header->op == htons(2))
 			{
-				a.s_addr = arp_header->spa;
-				printf("%s %s\n", "reply from ip:", inet_ntoa(a));
+				active_hosts[counter].ip = arp_header->spa;
+				memcpy(active_hosts[counter].mac_addr, arp_header->sha, ETH_ALEN);
+				counter++;
+				if (counter == MAX_HOSTS)
+				{
+					send_result(active_hosts, MAX_HOSTS * sizeof(host));
+					memset(active_hosts, 0, sizeof(active_hosts));
+					counter = 0;	
+				}
 			}
 		}
+		send_result(active_hosts, MAX_HOSTS * sizeof(host));
 		//close adapter
 		pcap_close(fp);
 	}
 
 	free(pAdapterInfo);
+	free(active_hosts);
 	pcap_freealldevs(alldevs);
 	
 	return 0;

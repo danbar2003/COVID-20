@@ -8,6 +8,7 @@
 #define ARP_HTYPE_ETHER 1  /* Ethernet ARP type */
 #define ARP_PTYPE_IPv4 0x0800 /* Internet Protocol packet */
 #define ETH_ALEN 6 /* MAC Address bytes size*/
+#define MAX_HOSTS 100
 
 #pragma pack(1)
 
