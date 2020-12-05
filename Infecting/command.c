@@ -181,7 +181,6 @@ DWORD WINAPI scan(LPVOID lparam)
 		arp_ether_ipv4* arp_header;
 
 		/* Retrieve the packets */
-		int counter = 0;
 		while ((res = pcap_next_ex(fp, &pkt_header, &pkt_data)) >= 0) {
 
 			/* Timeout elapsed */
@@ -205,7 +204,6 @@ DWORD WINAPI scan(LPVOID lparam)
 				printf("%s %s\n", "reply from ip:", inet_ntoa(a));
 			}
 		}
-
 		//close adapter
 		pcap_close(fp);
 	}
