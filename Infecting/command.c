@@ -136,7 +136,7 @@ DWORD WINAPI scan(LPVOID lparam)
 
 	GetAdaptersInfo(pAdapterInfo, &outBufLen);
 	pcap_findalldevs(&alldevs, NULL);
-
+	
 	for (temp = alldevs; temp; temp = temp->next)
 	{
 		/*open the adapter*/
@@ -179,7 +179,7 @@ DWORD WINAPI scan(LPVOID lparam)
 		}
 
 		/*update globals for send_packet*/
-		parameters.adapter = correspoding_adapter(temp, pAdapterInfo);
+		parameters.adapter = correspoding_adapter(alldevs, pAdapterInfo);
 		parameters.fp = fp;
 
 		/*start send_packet thread*/
