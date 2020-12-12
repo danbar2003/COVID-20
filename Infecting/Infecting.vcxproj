@@ -143,12 +143,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="arp_spoof.c" />
     <ClCompile Include="command.c" />
     <ClCompile Include="ipc_manage.c" />
     <ClCompile Include="ipc_manage.h" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="arp_spoof.h" />
     <ClInclude Include="commands.h" />
     <ClInclude Include="network_headers.h" />
   </ItemGroup>

@@ -27,12 +27,18 @@
     <ClCompile Include="command.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="arp_spoof.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="commands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="network_headers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="arp_spoof.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
