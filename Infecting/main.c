@@ -11,9 +11,8 @@ int main(int argc, char** argv)
 	size_t buf_size = sizeof buffer;
 	pCommand p;
 	//connect to the parnet process
-	scan(NULL);
-	//connect_to_parent_process();
-	getchar();
+	connect_to_parent_process();
+
 	for (;;)
 	{
 		//wait for command from parent process

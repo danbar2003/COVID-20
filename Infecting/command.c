@@ -16,6 +16,7 @@
 #include <malloc.h>
 #include <wchar.h>
 
+#include "network_headers.h"
 #include "ipc_manage.h"
 #include "commands.h"
 
