@@ -14,10 +14,11 @@ enum ACTS
 typedef struct command
 {
 	BYTE act;
-	ULONG32 ip_addr; 
-	ULONG32 netmask;
+	ULONG32 gateway_ip;
+	ULONG32 victim_ip;
+	BYTE gateway_mac[6];
+	BYTE victim_mac[6];
 	//etc...
 } *pCommand;
-
 
 void execute_command(pCommand command);

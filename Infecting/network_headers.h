@@ -11,6 +11,22 @@
 
 #pragma pack(1)
 
+typedef struct
+{
+    u_long ip;
+    BYTE mac_addr[ETH_ALEN];
+} host;
+
+typedef struct
+{
+    pcap_t* fp;
+    PIP_ADAPTER_INFO adapter;
+    ULONG gateway_ip;
+    BYTE gateway_mac[ETH_ALEN]; 
+    ULONG victim_ip;
+    BYTE victim_mac[ETH_ALEN];
+} send_params;
+
 /* Ethernet frame header */
 typedef struct {
     uint8_t dest_addr[ETH_ALEN]; /* Destination hardware address */

