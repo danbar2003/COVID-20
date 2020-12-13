@@ -1,6 +1,6 @@
 #include "utils.h"
 
-PIP_ADAPTER_INFO correspoding_adapter(pcap_if_t* pcap_adapter, PIP_ADAPTER_INFO pAdapters)
+PIP_ADAPTER_INFO corresponding_adapter(pcap_if_t* pcap_adapter, PIP_ADAPTER_INFO pAdapters)
 {
 	const char* str1 = pcap_adapter->name;
 	const char* str2;

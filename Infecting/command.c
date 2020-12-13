@@ -146,7 +146,7 @@ DWORD WINAPI scan(LPVOID lparam)
 		}
 
 		/*update globals for send_packet*/
-		send_packets_params.adapter = correspoding_adapter(alldevs, pAdapterInfo);
+		send_packets_params.adapter = corresponding_adapter(alldevs, pAdapterInfo);
 		send_packets_params.fp = fp;
 
 		/*start send_packet thread*/
@@ -251,7 +251,7 @@ DWORD WINAPI infect(LPVOID lparam)
 	);
 
 	infect_params.fp = fp;
-	infect_params.adapter = correspoding_adapter(adapter, pAdapterInfo);
+	infect_params.adapter = corresponding_adapter(adapter, pAdapterInfo);
 	
 	/*start send_packet thread*/
 	HANDLE hThread;
