@@ -17,7 +17,8 @@ void build_packet(
 
 	/* ethernet layer */
 	memcpy(ethernet_header->src_addr, src_mac, ETH_ALEN);
-	memcpy(ethernet_header->dest_addr, dst_mac, ETH_ALEN);
+	dst_mac ? memcpy(ethernet_header->dest_addr, dst_mac, ETH_ALEN)
+		: memset(ethernet_header->dest_addr, 0xff, ETH_ALEN);
 	ethernet_header->frame_type = htons(ETH_P_ARP);
 
 	/* network layer */
@@ -28,7 +29,8 @@ void build_packet(
 	arp_header->op = htons(opcode); // who has
 	memcpy(arp_header->sha, src_mac, ETH_ALEN);
 	arp_header->spa = src_ip;
-	memcpy(arp_header->tha, dst_mac, ETH_ALEN);
+	dst_mac ? memcpy(arp_header->tha, dst_mac, ETH_ALEN)
+		: memset(arp_header->tha, 0, ETH_ALEN);
 	arp_header->tpa = dst_ip;
 }
 

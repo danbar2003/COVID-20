@@ -7,4 +7,5 @@
 
 #include "network_headers.h"
 #include "utils.h"
+
 DWORD WINAPI start_spoof(LPVOID lparam);
