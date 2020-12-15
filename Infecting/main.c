@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 		get_command(buffer, buf_size);
 		
 		//execute the command
-		p = (pCommand)buffer;
+		p = (pCommand)(buffer+sizeof(int));
 		execute_command(p);
 	}
 	
