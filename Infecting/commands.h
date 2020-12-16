@@ -1,4 +1,5 @@
 #pragma once
+#pragma pack(1)
 
 #include <Windows.h>
 
@@ -14,8 +15,8 @@ enum ACTS
 typedef struct command
 {
 	BYTE act;
-	ULONG32 gateway_ip;
-	ULONG32 victim_ip;
+	ULONG gateway_ip;
+	ULONG victim_ip;
 	BYTE gateway_mac[6];
 	BYTE victim_mac[6];
 	//etc...
