@@ -202,4 +202,8 @@ void Communication::HandleCommandResults()
 	if (IPC_init() != 0)
 		return;
 	
+	u_char* buffer = (u_char*)malloc(1024);
+	get_result(buffer, 1024);
+
+	//send it back to master
 }
