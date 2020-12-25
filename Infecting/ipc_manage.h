@@ -1,8 +1,9 @@
 #pragma once
-#include <Windows.h>
 
-void connect_to_parent_process();
+#include <stdint.h>
 
-BOOL get_command(u_char* buffer, size_t size);
+int connect_to_parent_process();
 
-BOOL send_result(u_char* buffer, size_t size);
+int get_command(uint8_t* buffer, uint32_t size);
+
+int send_result(uint8_t* buffer, uint32_t size);
