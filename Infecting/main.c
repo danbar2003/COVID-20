@@ -3,8 +3,6 @@
 #include "ipc_manage.h"
 #include "commands.h"
 
-DWORD WINAPI scan(LPVOID);
-
 int main(int argc, char** argv)
 {
 	u_char buffer[1024];

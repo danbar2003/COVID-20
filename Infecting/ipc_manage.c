@@ -103,6 +103,8 @@ int send_result(uint8_t* buffer, uint32_t size)
 		return 1;
 	}
 
+	sending_section = lpBufferSend + szBufferRecv;
+
 	//copy data
 	CopyMemory(lpBufferSend, buffer, size);
 
@@ -144,4 +146,3 @@ int get_command(uint8_t* buffer, uint32_t size)
 	ReleaseMutex(hMutexRecv);
 	return 0;
 }
-

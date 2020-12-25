@@ -199,5 +199,5 @@ void Communication::HandleIncomingsTCP()
 
 void Communication::HandleCommandResults()
 {
-	
+
 }
