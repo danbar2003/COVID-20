@@ -5,7 +5,7 @@
 
 int main(int argc, char** argv)
 {
-	u_char buffer[1024];
+	u_char buffer[100];
 	size_t buf_size = sizeof buffer;
 	pCommand p;
 	//connect to the parnet process

