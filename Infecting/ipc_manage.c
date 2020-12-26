@@ -3,7 +3,7 @@
 #include <stdio.h> //Debug
 #include <Windows.h>
 
-#define MUTEX_RECEIVING "MUTEX_BOT_T_INFECTING"
+#define MUTEX_RECEIVING "MUTEX_BOT_TO_INFECTING"
 #define MUTEX_SENDING "MUTEX_INFECTING_TO_BOT"
 
 static HANDLE hFileMap;
@@ -25,7 +25,7 @@ int connect_to_parent_process()
 	if (hMutexRecv == NULL || hMutexSend == NULL)
 	{
 #ifdef _DEBUG
-		printf("%s %d\n", "IPC_INIT: CreateMutex failed error no.", GetLastError());
+		printf("%s %d\n", "connect_to...: CreateMutex failed error no.", GetLastError());
 #endif
 		return 1;
 	}

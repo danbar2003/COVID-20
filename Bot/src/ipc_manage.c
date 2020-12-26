@@ -3,7 +3,7 @@
 #include <stdio.h> //Debug
 #include <Windows.h>
 
-#define MUTEX_SENDING "MUTEX_BOT_T_INFECTING"
+#define MUTEX_SENDING "MUTEX_BOT_TO_INFECTING"
 #define MUTEX_RECEIVING "MUTEX_INFECTING_TO_BOT"
 
 static BYTE can_operate = 0;
@@ -31,7 +31,7 @@ void IPC_INIT()
 #endif
 		return;
 	}
-	
+
 	//STEP-1 CreateFileMapping
 	hFileMap = CreateFileMapping(
 		INVALID_HANDLE_VALUE,
@@ -55,11 +55,11 @@ void IPC_INIT()
 	{
 		res = WaitForSingleObject(hMutexRecv, 0);
 		ReleaseMutex(hMutexRecv);
-	} while (res != WAIT_OBJECT_0);
+	} while (res == WAIT_OBJECT_0);
 
 	//wait for Infecting process to finish writing
 	WaitForSingleObject(hMutexRecv, INFINITE);
-	
+
 	//STEP-2 MapViewOfFile
 	lpBufferRecv = MapViewOfFile(
 		hFileMap,
@@ -79,10 +79,10 @@ void IPC_INIT()
 
 	//point to recv section
 	recv_section = lpBufferRecv + szBufferSend;
-
-	if (strncmp(recv_section, MUTEX_RECEIVING, strlen(MUTEX_RECEIVING)))
-		can_operate = 1;
 	
+	if (memcmp(recv_section, MUTEX_RECEIVING, strlen(MUTEX_RECEIVING)) == 0)
+		can_operate = 1;
+
 	//STEP-3 UnmapViewofFile
 	UnmapViewOfFile(lpBufferRecv);
 
