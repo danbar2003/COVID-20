@@ -199,11 +199,12 @@ void Communication::HandleIncomingsTCP()
 
 void Communication::HandleCommandResults()
 {
-	if (IPC_init() != 0)
-		return;
-	
-	u_char* buffer = (u_char*)malloc(1024);
-	get_result(buffer, 1024);
+	IPC_INIT();
+	uint8_t buf[900];
 
-	//send it back to master
+	while (1)
+	{
+		recv_result(buf, 900);
+		sendto(udp_sock, (char*)buf, 900, 0, (struct sockaddr*)&master, sizeof(master));
+	}
 }
