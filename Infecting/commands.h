@@ -1,7 +1,8 @@
 #pragma once
-#pragma pack(1)
 
 #include <Windows.h>
+
+#pragma pack(1)
 
 enum ACTS
 {
