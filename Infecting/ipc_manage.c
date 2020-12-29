@@ -106,7 +106,7 @@ int send_result(uint8_t* buffer, uint32_t size)
 	sending_section = lpBufferSend + szBufferRecv;
 
 	//copy data
-	CopyMemory(lpBufferSend, buffer, size);
+	CopyMemory(sending_section, buffer, size);
 
 	//Write changes
 	UnmapViewOfFile(lpBufferSend);
@@ -146,10 +146,7 @@ int get_command(uint8_t* buffer, uint32_t size)
 
 	//read data
 	CopyMemory(buffer, lpBufferRecv, size);
-	for (size_t i = 0; i < size; i++)
-	{
-		printf("%c", buffer[i]);
-	}
+	
 	//UnmapViewOfFile
 	UnmapViewOfFile(lpBufferRecv);
 
