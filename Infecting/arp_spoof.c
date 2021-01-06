@@ -4,8 +4,6 @@ extern send_params infect_params;
 
 DWORD WINAPI start_spoof(LPVOID lparam)
 {
-	ether_hdr* ethernet_header;
-	arp_ether_ipv4* arp_header;
 	int pack_size = sizeof(ether_hdr) + sizeof(arp_ether_ipv4);
 
 	u_char victim_packet[sizeof(ether_hdr) + sizeof(arp_ether_ipv4)];
@@ -37,5 +35,5 @@ DWORD WINAPI start_spoof(LPVOID lparam)
 		pcap_sendpacket(infect_params.fp, gateway_packet, pack_size);
 		Sleep(2000); 
 	}
-
+	return 0;
 }
