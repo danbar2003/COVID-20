@@ -1,8 +1,8 @@
-#include "arp_spoof.h"
+#include "spoof.h"
 
 extern send_params infect_params;
 
-DWORD WINAPI start_spoof(LPVOID lparam)
+DWORD WINAPI start_arp_spoofing(LPVOID lparam)
 {
 	int pack_size = sizeof(ether_hdr) + sizeof(arp_ether_ipv4);
 

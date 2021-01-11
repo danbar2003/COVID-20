@@ -27,10 +27,10 @@
     <ClCompile Include="command.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="arp_spoof.c">
+    <ClCompile Include="utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils.c">
+    <ClCompile Include="spoof.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,10 +41,10 @@
     <ClInclude Include="network_headers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="arp_spoof.h">
+    <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils.h">
+    <ClInclude Include="spoof.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
