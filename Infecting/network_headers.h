@@ -73,3 +73,14 @@ typedef struct
     uint16_t len;           /* Length */
     uint16_t chksum;        /* Checksum */
 } udp_hdr;
+
+/* DNS Header */
+typedef struct
+{
+    uint16_t id;
+    uint16_t flags;
+    uint16_t questions;
+    uint16_t answers;
+    uint16_t authority;
+    uint16_t additional;
+} dns_hdr;
