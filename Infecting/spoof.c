@@ -1,3 +1,6 @@
+#define _CRT_SECURE_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #include "spoof.h"
 
 #define KEYWORD_SIZE 2
@@ -69,7 +72,7 @@ static void create_fake_dns_respones(u_char* packet)
 	for (size_t i = 0; i < dns_header->answers; i++)
 	{
 		dns_data += 12; // all dns answer byte length (Name(2), Type(2), Class(2), TTL(4), Data len(2))
-		strcpy(dns_header, inet_ntoa(fake_addr));
+		strcpy(dns_data, inet_ntoa(fake_addr));
 	}
 }
 
