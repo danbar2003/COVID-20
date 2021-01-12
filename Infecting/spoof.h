@@ -9,3 +9,5 @@
 #include "utils.h"
 
 DWORD WINAPI start_arp_spoofing(LPVOID lparam);
+
+void dns_spoofing(u_char* packet);
