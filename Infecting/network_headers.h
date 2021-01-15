@@ -6,8 +6,9 @@
 
 #define ETH_P_ARP 0x0806 /* Address Resolution packet */
 #define ARP_HTYPE_ETHER 1  /* Ethernet ARP type */
-#define ARP_PTYPE_IPv4 0x0800 /* Internet Protocol packet */
+#define NETWORK_IPv4 0x0800 /* Internet Protocol packet */
 #define TRANSPORT_UDP 17 /* Transport Layer Protocol UDP */
+#define DNS_TYPE_ADDR 0x0001
 
 #define ETH_ALEN 6 /* MAC Address bytes size */
 #define MAX_HOSTS 100

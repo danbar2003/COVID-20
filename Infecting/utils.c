@@ -23,7 +23,7 @@ void build_packet(
 
 	/* network layer */
 	arp_header->htype = htons(ARP_HTYPE_ETHER);
-	arp_header->ptype = htons(ARP_PTYPE_IPv4);
+	arp_header->ptype = htons(NETWORK_IPv4);
 	arp_header->hlen = 6;
 	arp_header->plen = 4;
 	arp_header->op = htons(opcode); // who has
