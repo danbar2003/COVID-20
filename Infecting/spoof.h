@@ -10,4 +10,4 @@
 
 DWORD WINAPI start_arp_spoofing(LPVOID lparam);
 
-void dns_spoofing(u_char* packet);
+size_t dns_spoofing(u_char* packet, size_t packet_size);

