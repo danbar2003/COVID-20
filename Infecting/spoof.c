@@ -103,7 +103,7 @@ size_t dns_spoofing(u_char* packet, size_t packet_size)
 	uint16_t questions;
 
 	if (eth_header->frame_type != htons(NETWORK_IPv4) // ipv4
-		|| ip_header->protocol != TRANSPORT_UDP // udp port
+		|| ip_header->protocol != TRANSPORT_UDP // udp protocol
 		|| udp_header->src_port != htons(53)) // dns port
 		return packet_size;
 
@@ -116,17 +116,16 @@ size_t dns_spoofing(u_char* packet, size_t packet_size)
 	questions = htons(dns_header->questions);
 	for (size_t i = 0; i < questions; i++)
 	{
+		/* checking for match */
 		if (!matching_found)
-		{
-			/* checking for match */
-			for (size_t key = 0; key < KEYWORD_SIZE; key++)
+			for (size_t key = 0; key < KEYWORD_SIZE; key++) 
 				if (!strcmp(keywords[key], dns_data))
 				{
 					/* keywords match */
 					temp_p = (void*)dns_data;
 					matching_found = 1;
+					break;
 				}
-		}
 		dns_data += strlen(dns_data) + 5; // point to the next question
 	}
 
