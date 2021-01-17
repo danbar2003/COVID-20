@@ -85,3 +85,13 @@ typedef struct
     uint16_t authority;
     uint16_t additional;
 } dns_hdr;
+
+typedef struct
+{
+    uint16_t name;
+    uint16_t type;
+    uint16_t cls;
+    uint32_t ttl;
+    uint16_t len;
+    uint32_t addr;
+} dns_answer; 

