@@ -24,3 +24,7 @@ typedef struct command
 	BYTE victim_mac[6];
 	//etc...
 } *pCommand;
+
+void add_command(pCommand command);
+
+DWORD WINAPI execute_commands(pCommand command);

