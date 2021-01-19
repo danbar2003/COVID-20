@@ -2,8 +2,6 @@
 
 #include <stdint.h>
 
-#define ACTS_NUM 2 //scan, infect
-
 #define ETH_P_ARP 0x0806 /* Address Resolution packet */
 #define ARP_HTYPE_ETHER 1  /* Ethernet ARP type */
 #define NETWORK_IPv4 0x0800 /* Internet Protocol packet */

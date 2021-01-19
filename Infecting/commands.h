@@ -4,6 +4,8 @@
 
 #pragma pack(1)
 
+#define ACTS_NUM 2 //scan, infect
+
 enum ACTS
 {
 	SCAN, //start scanning the net
@@ -22,5 +24,3 @@ typedef struct command
 	BYTE victim_mac[6];
 	//etc...
 } *pCommand;
-
-void execute_command(pCommand command);

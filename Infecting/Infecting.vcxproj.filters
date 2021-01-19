@@ -30,7 +30,10 @@
     <ClCompile Include="utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="spoof.c">
+    <ClCompile Include="scan.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="infect.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -44,7 +47,13 @@
     <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="spoof.h">
+    <ClInclude Include="scan.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="act_header.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="infect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
