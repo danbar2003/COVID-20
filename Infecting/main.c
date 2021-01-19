@@ -31,6 +31,7 @@ int main(int argc, char** argv)
 		//execute the command
 		p = (pCommand)(buffer+sizeof(int));
 		add_command(p);
+		Sleep(1000);
 	}
 	
 }

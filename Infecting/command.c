@@ -9,7 +9,7 @@
 
 //globals
 static HANDLE running_thread;
-static BOOL acts[ACTS_NUM] = {0};
+static BYTE acts[ACTS_NUM] = {0};
 extern send_params infect_params;
 
 /*
@@ -82,6 +82,7 @@ DWORD WINAPI execute_commands(LPVOID lparam)
 				}
 			}
 		}
+		Sleep(1000);
 	}
 	return 0;
 }
