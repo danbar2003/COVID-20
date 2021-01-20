@@ -51,33 +51,12 @@ DWORD WINAPI execute_commands(LPVOID lparam)
 				switch (act)
 				{
 				case SCAN:
-					/* create scan thread and wait for it to finish */
-					running_thread = CreateThread(
-						NULL,
-						0,
-						scan,
-						NULL,
-						0,
-						NULL
-					);
-					WaitForSingleObject(running_thread, INFINITE);
-					CloseHandle(running_thread);
+					scan();
 					acts[SCAN] = 0; //action not active. 
 					break;
 				case INFECT:
-
-					/* create infect thread and wait for it to finish */
-					running_thread = CreateThread(
-						NULL,
-						0,
-						infect,
-						NULL,
-						0,
-						NULL
-					);
-					WaitForSingleObject(running_thread, INFINITE);
-					CloseHandle(running_thread);
-					acts[INFECT] = 0;
+					infect();
+					acts[INFECT] = 0; //action not active. 
 					break;
 				}
 			}

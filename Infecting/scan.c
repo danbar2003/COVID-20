@@ -51,7 +51,7 @@ static DWORD WINAPI send_packets(LPVOID lparam)
 	return 0;
 }
 
-DWORD WINAPI scan(LPVOID lparam)
+void scan()
 {
 	//Winpcap
 	pcap_t* fp;
