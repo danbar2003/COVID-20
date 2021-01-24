@@ -99,6 +99,10 @@ static void handle_udp_connections()
 
 	/* recv packet */
 	recvfrom(udp_sock, (char*)&p, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&client, &client_size);
+	
+	for (size_t i = 0; i < adapters_count; i++)
+		if (DEC_ADAPTER_IPS_ARR[i].hip == client.sin_addr.s_addr)
+			return;
 
 	switch (p.type)
 	{
