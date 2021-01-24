@@ -114,6 +114,7 @@ static void handle_udp_connections()
 		break;
 	case SYNC_REQUEST:
 		sync_reply(client);
+		break;
 	case SYNC_REPLY:
 		break;
 	}
