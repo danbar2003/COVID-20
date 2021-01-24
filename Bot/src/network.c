@@ -2,11 +2,9 @@
 #include <stdio.h> //DEBUG
 #include "network.h"
 
-const char LOCAL_IP[] = "127.0.0.1";
-const int MAX_IPSTR_BUF_SIZE = 5 * 3 + 1; // 4 times xxx (255 fe) + 3 dots + null
 const size_t BOTNET_PACK_SIZE = sizeof(struct botnet_pack);
-const size_t BACKLOG = 10;
 struct network_adapter DEC_ADAPTER_IPS_ARR[20];
+size_t adapters_count = 0;
 
 int check(int exp, const char* msg)
 {
@@ -39,7 +37,6 @@ void init_network_settings()
 		sizeof(InterfaceList), &nBytesReturned, 0, 0), "init_network_settings WSALoctl error ");
 	
 	//First one is local host.
-	size_t j = 0;
 	for (size_t i = 1; i < nBytesReturned / sizeof(INTERFACE_INFO); i++)
 	{
 		if (InterfaceList[i].iiFlags & IFF_UP)
@@ -49,8 +46,8 @@ void init_network_settings()
 			adapter.netmask = InterfaceList[i].iiNetmask.AddressIn.sin_addr.S_un.S_addr;
 			adapter.broadcast = InterfaceList[i].iiBroadcastAddress.AddressIn.sin_addr.S_un.S_addr;
 
-			DEC_ADAPTER_IPS_ARR[j] = adapter;
-			j++;
+			DEC_ADAPTER_IPS_ARR[adapters_count] = adapter;
+			adapters_count++;
 		}
 	}	
 

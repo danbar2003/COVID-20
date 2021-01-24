@@ -1,16 +1,8 @@
 #pragma once
+#include <Windows.h>
 
-#include <stdint.h>
+void IPC_INIT();
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-	void IPC_INIT();
+int send_command(u_char* buffer, UINT32 size);
 
-	int send_command(uint8_t* buffer, uint32_t size);
-
-	int recv_result(uint8_t* dst, uint32_t size);
-#ifdef __cplusplus
-}
-#endif
+int recv_result(u_char* dst, UINT32 size);

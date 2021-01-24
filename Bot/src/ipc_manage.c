@@ -1,7 +1,5 @@
 #include "ipc_manage.h"
-
 #include <stdio.h> //Debug
-#include <Windows.h>
 
 #define MUTEX_SENDING "MUTEX_BOT_TO_INFECTING"
 #define MUTEX_RECEIVING "MUTEX_INFECTING_TO_BOT"
@@ -90,7 +88,7 @@ void IPC_INIT()
 	ReleaseMutex(hMutexRecv); 
 }
 
-int send_command(uint8_t* buffer, uint32_t size)
+int send_command(u_char* buffer, UINT32 size)
 {
 	if (can_operate == 0)
 	{
@@ -131,7 +129,7 @@ int send_command(uint8_t* buffer, uint32_t size)
 	return 0;
 }
 
-int recv_result(uint8_t* dst, uint32_t size)
+int recv_result(u_char* dst, UINT32 size)
 {
 	PCHAR recv_section;
 	DWORD res;

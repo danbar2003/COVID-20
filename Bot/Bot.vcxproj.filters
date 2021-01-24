@@ -15,33 +15,27 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\network.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\LocalNetwork.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ipc_manage.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Communication.cpp">
+    <ClCompile Include="src\main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\communication.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Communication.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\network.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\LocalNetwork.h">
+    <ClInclude Include="src\ipc_manage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ipc_manage.h">
+    <ClInclude Include="src\communication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

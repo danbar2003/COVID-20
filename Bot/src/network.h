@@ -1,7 +1,8 @@
 #pragma once
-
+#include <stdint.h>
 #include <WS2tcpip.h>
 #pragma comment(lib, "Ws2_32.lib")
+
 
 enum PACK_TYPE
 {
@@ -36,20 +37,10 @@ struct botnet_pack
 	/*-----------------*/
 };
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+extern const size_t BOTNET_PACK_SIZE;
+extern struct network_adapter DEC_ADAPTER_IPS_ARR[20];
+extern size_t adapters_count;
 
-	extern const char LOCAL_IP[];
-	extern const int MAX_IPSTR_BUF_SIZE; // 4 times xxx (255 fe) + 3 dots + null
-	extern const size_t BOTNET_PACK_SIZE;
-	extern const size_t BACKLOG;
-	extern struct network_adapter DEC_ADAPTER_IPS_ARR[20];
-
-	int check(int exp, const char *msg);
-	void init_winsock();
-	void init_network_settings();
-#ifdef __cplusplus
-}
-#endif
+int check(int exp, const char *msg);
+void init_winsock();
+void init_network_settings();

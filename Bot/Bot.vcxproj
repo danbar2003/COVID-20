@@ -140,16 +140,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\ipc_manage.c" />
-    <ClCompile Include="src\Communication.cpp" />
+    <ClCompile Include="src\communication.c" />
     <ClCompile Include="src\network.c" />
-    <ClCompile Include="src\LocalNetwork.cpp" />
-    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\main.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ipc_manage.h" />
-    <ClInclude Include="src\Communication.h" />
+    <ClInclude Include="src\communication.h" />
     <ClInclude Include="src\network.h" />
-    <ClInclude Include="src\LocalNetwork.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
