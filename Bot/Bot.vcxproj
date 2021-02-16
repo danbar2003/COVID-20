@@ -139,12 +139,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\botnet.cpp" />
     <ClCompile Include="src\ipc_manage.c" />
     <ClCompile Include="src\communication.cpp" />
     <ClCompile Include="src\network.c" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\botnet.h" />
     <ClInclude Include="src\ipc_manage.h" />
     <ClInclude Include="src\communication.h" />
     <ClInclude Include="src\network.h" />

