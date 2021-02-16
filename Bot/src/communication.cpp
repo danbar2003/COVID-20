@@ -12,7 +12,6 @@ static SOCKET udp_sock;
 static SOCKET tcp_sock;
 static struct sockaddr_in master;
 
-
 /*
 * @purpose: Create basic sockets for communication operations.
 * @params: none.

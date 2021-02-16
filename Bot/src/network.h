@@ -37,10 +37,17 @@ struct botnet_pack
 	/*-----------------*/
 };
 
-extern const size_t BOTNET_PACK_SIZE;
-extern struct network_adapter DEC_ADAPTER_IPS_ARR[20];
-extern size_t adapters_count;
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+	extern const size_t BOTNET_PACK_SIZE;
+	extern struct network_adapter DEC_ADAPTER_IPS_ARR[20];
+	extern size_t adapters_count;
 
-int check(int exp, const char *msg);
-void init_winsock();
-void init_network_settings();
+	int check(int exp, const char* msg);
+	void init_winsock();
+	void init_network_settings();
+#ifdef __cplusplus
+}
+#endif

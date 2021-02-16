@@ -140,9 +140,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\ipc_manage.c" />
-    <ClCompile Include="src\communication.c" />
+    <ClCompile Include="src\communication.cpp" />
     <ClCompile Include="src\network.c" />
-    <ClCompile Include="src\main.c" />
+    <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ipc_manage.h" />
