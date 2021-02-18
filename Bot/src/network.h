@@ -14,6 +14,7 @@ enum PACK_TYPE
 
 	PEER_REQUEST,
 	PEER_REPLY,
+	NETWORK_SYNC,
 
 	COMMAND,
 	COMMAND_RESULT,
@@ -23,12 +24,18 @@ enum PACK_TYPE
 	,
 };
 
+#pragma pack(push, 1)
 struct network_adapter
 {
 	ULONG32 hip;
 	ULONG32 netmask;
 	ULONG32 broadcast;
 };
+
+typedef struct {
+	uint32_t ip;
+	uint16_t port;
+} adr;
 
 struct botnet_pack
 {
@@ -47,9 +54,11 @@ struct botnet_pack
 		uint16_t id; // commands 
 		uint16_t num_of_hosts; // p2p establishing
 	} numerics ;
-	struct { uint32_t ip; uint16_t port;} peer;
+	
+	adr dst_peer, private_peer;
 	/*---------------------*/
 };
+#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C"

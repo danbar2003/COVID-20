@@ -1,24 +1,38 @@
 #pragma once
 
+#include "network.h"
+
 #include <vector>
 #include <stdio.h>
 #include <winsock2.h>
 #pragma comment(lib, "ws2_32.lib")
 
+typedef struct
+{
+	adr host;
+	size_t n_branches;
+} tree_ext;
+
 class BotnetNode
 {
-	struct
-	{
-		uint32_t _ip;
-		uint16_t _port;
-	} _adr;
+private:
+	adr _adr;
+	std::vector<BotnetNode*> _branches;
 
-	std::vector<BotnetNode> _branches;
+	void sendNetTree(
+		const SOCKET& udp_sock,
+		const struct sockaddr_in& peer_addr,
+		std::vector<adr>& hosts,
+		char* const buf
+	);
 
 public:
 	BotnetNode();
 
-	BotnetNode(uint32_t ip, uint16_t port);
+	BotnetNode(
+		uint32_t ip, 
+		uint16_t port
+);
 
-	void addPeer(uint32_t peer_ip, uint16_t peer_port);
+	void addPeer(const struct botnet_pack& pack, const SOCKET& udp_sock);
 };

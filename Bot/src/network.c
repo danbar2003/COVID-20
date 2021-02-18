@@ -27,6 +27,8 @@ void init_winsock()
 
 void init_network_settings()
 {
+	init_winsock();
+
 	SOCKET sd = WSASocket(AF_INET, SOCK_DGRAM, 0, 0, 0, 0);
 	check(sd, "error init_network_settings building socket");
 

