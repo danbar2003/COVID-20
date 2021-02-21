@@ -46,7 +46,8 @@ public:
 	);
 
 	void handleSync(
-		const u_char* pack
+		const u_char* pack,
+		const struct sockaddr_in& peer_addr
 	);
 	
 	void keepAlive(
