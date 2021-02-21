@@ -47,7 +47,7 @@ public:
 
 
 	void handleSync(
-		const struct botnet_pack& pack
+		const u_char* pack
 	);
 
 };

