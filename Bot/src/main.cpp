@@ -11,7 +11,6 @@ int main(int argc, char* argv[])
 	create_communication_sockets();
 	//IPC_INIT();
 	HANDLE communication = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)handle_incomings, NULL, 0, NULL);
-
 	peer_request();
 	
 	

