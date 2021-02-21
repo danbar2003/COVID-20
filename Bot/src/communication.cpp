@@ -189,7 +189,7 @@ void handle_incomings()
 
 	while (1)
 	{
-		flag = 0;
+		flag = 1;
 		copy = master;
 		size_t socketCount = select(0, &copy, NULL, NULL, &tv);
 
