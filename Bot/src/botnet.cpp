@@ -74,6 +74,7 @@ void BotnetNode::addPeer(
 		sendNetTree(udp_sock, peer_addr, hosts, buffer);
 
 		_branches.push_back(new BotnetNode(pack->dst_peer.ip, pack->dst_peer.port));
+		printf("%lu %h\n", pack->dst_peer.ip, pack->dst_peer.port);
 	}
 }
 
@@ -150,8 +151,8 @@ void BotnetNode::keepAlive(
 	{
 		/* create sockaddr_in struct */
 		addr.sin_family = AF_INET;
-		addr.sin_port = node->_adr.port;
-		addr.sin_family = node->_adr.ip;
+		addr.sin_port = htons(node->_adr.port);
+		addr.sin_addr.s_addr = htonl(node->_adr.ip);
 
 		sendto(udp_sock, msg, 10, 0, (struct sockaddr*)&addr, sizeof(addr));
 	}
