@@ -74,7 +74,6 @@ void BotnetNode::addPeer(
 		sendNetTree(udp_sock, peer_addr, hosts, buffer);
 
 		_branches.push_back(new BotnetNode(pack->dst_peer.ip, pack->dst_peer.port));
-		printf("%lu %h\n", pack->dst_peer.ip, pack->dst_peer.port);
 	}
 }
 

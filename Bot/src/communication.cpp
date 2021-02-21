@@ -180,11 +180,11 @@ void handle_incomings()
 	FD_ZERO(&master);
 	FD_SET(udp_sock, &master);
 	FD_SET(tcp_sock, &master);
+	struct timeval tv = { 30, 0 };   // sleep for 30 seconds.
 
 	while (1)
 	{
 		copy = master;
-		struct timeval tv = { 30, 0 };   // sleep for 30 seconds.
 		size_t socketCount = select(0, &copy, NULL, NULL, &tv);
 
 		for (size_t i = 0; i < socketCount; i++)
