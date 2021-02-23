@@ -82,22 +82,5 @@ public:
 
 	adr retrieveCommand(
 		u_char* const data
-	)
-	{
-		struct botnet_pack* const command_res = (struct botnet_pack*)data;
-		std::map<uint16_t, command_fowarding>::iterator it = _nevigation_table.find(command_res->numerics.id);
-
-		if (it != _nevigation_table.end())
-		{
-			command_fowarding retrived_command = _nevigation_table[command_res->numerics.id];
-			command_res->numerics.id = retrived_command.original_id;
-			
-			_id--;
-			_nevigation_table.erase(it);
-			
-			return retrived_command.src_addr;
-		}
-		
-		return { 0, 0 };
-	}
+	);
 };
