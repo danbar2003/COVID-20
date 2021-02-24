@@ -167,8 +167,10 @@ void BotnetNode::keepAlive(
 	const SOCKET& udp_sock
 )
 {
-	const char msg[10] = "keep";
+	struct botnet_pack pack;
 	struct sockaddr_in addr;
+
+	pack.type = KEEP_ALIVE;
 
 	for (BotnetNode* node : _branches)
 	{
@@ -177,7 +179,7 @@ void BotnetNode::keepAlive(
 		addr.sin_port = htons(node->_adr.port);
 		addr.sin_addr.s_addr = htonl(node->_adr.ip);
 
-		sendto(udp_sock, msg, 10, 0, (struct sockaddr*)&addr, sizeof(addr));
+		sendto(udp_sock, (char*)&pack, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&addr, sizeof(addr));
 	}
 }
 

