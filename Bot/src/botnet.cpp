@@ -170,6 +170,7 @@ void BotnetNode::keepAlive(
 	struct botnet_pack pack;
 	struct sockaddr_in addr;
 
+	memset(&pack, 0, BOTNET_PACK_SIZE);
 	pack.type = KEEP_ALIVE;
 
 	for (BotnetNode* node : _branches)

