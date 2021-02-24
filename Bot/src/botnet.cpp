@@ -207,7 +207,7 @@ struct sockaddr_in BotnetNode::nextPathNode(
 	std::vector<adr> hosts;
 	BotnetNode* next_node;
 	
-	if (dest_addr.ip + dest_addr.port == 0)
+	if (dest_addr.ip + dest_addr.port != 0)
 		next_node = findPath(dest_addr, hosts);
 	else
 		next_node = findPath(private_addr, hosts);
