@@ -78,7 +78,8 @@ public:
 
 	struct sockaddr_in nextPathNode(
 		const adr& dest_addr,
-		const adr& private_addr
+		const adr& private_addr,
+		bool* b_status
 	);
 
 	adr retrieveCommand(

