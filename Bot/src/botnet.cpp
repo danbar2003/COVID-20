@@ -132,11 +132,8 @@ BotnetNode* BotnetNode::findPath(
 					temp_node = node;
 				}
 
-			if (temp_node)
-			{
-				*height = ++m_min;
-				return temp_node;
-			}
+			*height = ++m_min;
+			return temp_node;
 		}
 	}
 
