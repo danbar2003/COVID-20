@@ -44,7 +44,8 @@ private:
 
 	BotnetNode* findPath(
 		const adr& addr,
-		std::vector<adr>& hosts
+		std::vector<adr>& hosts,
+		int* height
 	);
 
 public:

@@ -102,23 +102,45 @@ BotnetNode* BotnetNode::findNode(
 
 BotnetNode* BotnetNode::findPath(
 	const adr& addr,
-	std::vector<adr>& hosts
+	std::vector<adr>& hosts,
+	int* height
 )
 {
+	
+	if (std::find_if(hosts.begin(), hosts.end(), [=](auto host) {return host.ip == _adr.ip && host.port == _adr.port; }) == hosts.end())
+	{
+		hosts.push_back(_adr);
 
-	if (std::find_if(hosts.begin(), hosts.end(), [=](auto host) {return host.ip == _adr.ip && host.port == _adr.port; }) != hosts.end())
-		return nullptr;
+		if (_adr.ip == addr.ip && _adr.port == addr.port)
+		{
+			*height = 0;
+			return this;
+		}
 
-	hosts.push_back(_adr);
+		if (!_branches.empty())
+		{
+			
+			int m_min = -1, temp_min;
+			BotnetNode* temp_node = nullptr;
 
-	if (_adr.ip == addr.ip && _adr.port == addr.port)
-		return this;
+			for (BotnetNode* node : _branches)
+				if (node->findPath(addr, hosts, &temp_min))
+				{
+					m_min == -1 ?
+						m_min = temp_min : 
+						m_min = min(m_min, temp_min);
+					temp_node = node;
+				}
 
-	for (BotnetNode* node : _branches)
-		if (node->findPath(addr, hosts))
-			return node;
+			if (temp_node)
+			{
+				*height = ++m_min;
+				return temp_node;
+			}
+		}
+	}
 
-	return nullptr;
+	return nullptr;	
 }
 
 void BotnetNode::handleSync(
@@ -206,11 +228,12 @@ struct sockaddr_in BotnetNode::nextPathNode(
 	struct sockaddr_in next_node_addr;
 	std::vector<adr> hosts;
 	BotnetNode* next_node;
+	int height;
 	
 	if (dest_addr.ip + dest_addr.port != 0)
-		next_node = findPath(dest_addr, hosts);
+		next_node = findPath(dest_addr, hosts, &height);
 	else
-		next_node = findPath(private_addr, hosts);
+		next_node = findPath(private_addr, hosts, &height);
 
 	next_node_addr.sin_family = AF_INET;
 	next_node_addr.sin_addr.s_addr = next_node->_adr.ip;
