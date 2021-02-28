@@ -30,13 +30,6 @@ private:
 	std::vector<BotnetNode*> _branches;
 	std::map<uint16_t, command_fowarding> _nevigation_table;
 
-	void sendNetTree(
-		const SOCKET& udp_sock,
-		const struct sockaddr_in& peer_addr,
-		std::vector<adr>& hosts,
-		char* const buf
-	);
-
 	BotnetNode* findNode(
 		const adr& addr,
 		std::vector<adr>& hosts
@@ -57,14 +50,21 @@ public:
 		uint16_t port
 	);
 
-	void addPeer(
+	struct sockaddr_in addPeer(
 		const u_char* data,
-		const SOCKET& udp_sock
+		BOOL* status
 	);
 
 	void handleSync(
 		const u_char* pack,
 		const struct sockaddr_in& peer_addr
+	);
+
+	void sendNetTree(
+		const SOCKET& udp_sock,
+		const struct sockaddr_in& peer_addr,
+		std::vector<adr>& hosts,
+		char* const buf
 	);
 	
 	void keepAlive(
@@ -79,7 +79,7 @@ public:
 	struct sockaddr_in nextPathNode(
 		const adr& dest_addr,
 		const adr& private_addr,
-		bool* b_status
+		BOOL* b_status
 	);
 
 	adr retrieveCommand(

