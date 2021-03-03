@@ -14,8 +14,5 @@ int main(int argc, char* argv[])
 	peer_request();
 	
 	
-	
-	
-	
 	getc(stdin);
 }

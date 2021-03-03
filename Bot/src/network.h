@@ -9,19 +9,18 @@
 enum PACK_TYPE
 {
 	//UDP
-	SYNC_REQUEST, // Used when a bot wants to tell it exists
-	SYNC_REPLY, // Used to send network structure syncs
-
 	PEER_REQUEST,
 	PEER_REPLY,
+
 	NETWORK_SYNC_REQUEST,
-	NETWORK_SYNC,
+	NETWORK_SYNC_REPLY,
 
 	KEEP_ALIVE,
 	KEEP_ALIVE_ACK,
 
 	COMMAND,
 	COMMAND_RESULT,
+
 	//TCP
 	VERSION_SYNC_REQUEST, //Ask for database info 
 	VERSION_SYNC //Sync database info
