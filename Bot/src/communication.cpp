@@ -320,7 +320,7 @@ void handle_ipc_results()
 
 	while (1)
 	{
-		/* recv commnad result content */
+		/* recv commnad result content (blocking) */
 		recv_result(commnad_result_section, 900);
 		
 		/* add the currect id for retrieving the packet */
