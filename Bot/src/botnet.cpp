@@ -28,7 +28,7 @@ void BotnetNode::sendNetTree(
 	struct botnet_pack* default_pack = (struct botnet_pack*)buf;
 	tree_ext* extention = (tree_ext*)(buf + BOTNET_PACK_SIZE);
 	adr* branches_data = (adr*)(buf + BOTNET_PACK_SIZE + sizeof(tree_ext));
-
+		
 	/* fill the packet with data*/
 	default_pack->type = NETWORK_SYNC_REPLY;
 	extention->host = _adr;
@@ -211,8 +211,8 @@ void BotnetNode::keepAlive(
 	{
 		/* create sockaddr_in struct */
 		addr.sin_family = AF_INET;
-		addr.sin_port = htons(node->_adr.port);
-		addr.sin_addr.s_addr = htonl(node->_adr.ip);
+		addr.sin_port = node->_adr.port;
+		addr.sin_addr.s_addr = node->_adr.ip;
 
 		sendto(udp_sock, (char*)&pack, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&addr, sizeof(addr));
 	}

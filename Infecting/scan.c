@@ -51,7 +51,7 @@ static DWORD WINAPI send_packets(LPVOID lparam)
 	return 0;
 }
 
-void scan()
+int scan()
 {
 	//Winpcap
 	pcap_t* fp;
@@ -149,11 +149,7 @@ void scan()
 				memcpy(active_hosts[counter].mac_addr, arp_header->sha, ETH_ALEN);
 				counter++;
 				if (counter == MAX_HOSTS)
-				{
-					send_result((uint8_t*)active_hosts, MAX_HOSTS * sizeof(host));
-					memset(active_hosts, 0, sizeof(active_hosts));
-					counter = 0;
-				}
+					break;
 			}
 		}
 		send_result((uint8_t*)active_hosts, MAX_HOSTS * sizeof(host));

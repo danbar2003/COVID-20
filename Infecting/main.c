@@ -5,6 +5,7 @@
 
 int main(int argc, char** argv)
 {
+	Sleep(1000);
 	/* locals */
 	HANDLE action_thread;
 	u_char buffer[100];

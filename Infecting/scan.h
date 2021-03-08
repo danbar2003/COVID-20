@@ -2,4 +2,4 @@
 
 #include "act_header.h"
 
-void scan();
+int scan();
