@@ -324,6 +324,7 @@ void handle_ipc_results()
 		recv_result(commnad_result_section, 900);
 		
 		/* add the currect id for retrieving the packet */
+		p->type = PACK_TYPE::COMMAND_RESULT;
 		p->numerics.id = master_commnad_id;
 
 		/* like any command given to the machine */
