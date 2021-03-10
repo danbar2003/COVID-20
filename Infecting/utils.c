@@ -60,3 +60,24 @@ PIP_ADAPTER_INFO corresponding_adapter(
 	}
 	return NULL;
 }
+
+uint32_t v_adapter(const pcap_if_t* alldevs, pcap_if_t** adapter_result, uint32_t v_ip)
+{
+	uint32_t host, netmask;
+	pcap_addr_t* addr;
+
+	for (; alldevs != NULL; alldevs = alldevs->next)
+		for (addr = alldevs->addresses; addr != NULL; addr = addr->next)
+		{
+			host = ((struct sockaddr_in*)(addr->addr))->sin_addr.s_addr;
+			netmask = ((struct sockaddr_in*)(addr->netmask))->sin_addr.s_addr;
+
+			if ((host & netmask) == (v_ip & netmask))
+			{
+				*adapter_result = alldevs;
+				return netmask;
+			}
+		}
+	*adapter_result = NULL;
+	return 0;
+}

