@@ -15,7 +15,7 @@ typedef struct
 } tree_ext;
 
 class BotnetNode;
-
+	
 typedef struct 
 {
 	adr src_addr;
