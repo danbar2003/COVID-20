@@ -21,7 +21,7 @@ typedef struct
 	adr src_addr;
 	uint16_t original_id;
 } command_fowarding;
-
+	
 class BotnetNode
 {
 private:
