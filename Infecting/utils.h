@@ -22,7 +22,9 @@ PIP_ADAPTER_INFO corresponding_adapter(
 uint32_t v_adapter(
 	pcap_if_t* alldevs, 
 	pcap_if_t** adapter_result, 
-	uint32_t v_ip
+	uint32_t v_ip,
+	uint32_t* host, 
+	uint32_t* netmask
 );
 
 uint32_t net_checksum_add(

