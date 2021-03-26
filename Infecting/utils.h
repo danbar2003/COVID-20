@@ -19,7 +19,7 @@ PIP_ADAPTER_INFO corresponding_adapter(
 	PIP_ADAPTER_INFO pAdapters
 );
 
-uint32_t v_adapter(
+void v_adapter(
 	pcap_if_t* alldevs, 
 	pcap_if_t** adapter_result, 
 	uint32_t v_ip,

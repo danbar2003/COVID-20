@@ -63,14 +63,24 @@ PIP_ADAPTER_INFO corresponding_adapter(
 
 void v_adapter(pcap_if_t* alldevs, pcap_if_t** adapter_result, uint32_t v_ip, uint32_t* host, uint32_t* netmask)
 {
+	uint32_t lhost, lnetmask;
+
 	for (; alldevs != NULL; alldevs = alldevs->next)
 		for (pcap_addr_t* addr = alldevs->addresses; addr != NULL; addr = addr->next)
 		{
-			*host = ((struct sockaddr_in*)(addr->addr))->sin_addr.s_addr;
-			*netmask = ((struct sockaddr_in*)(addr->netmask))->sin_addr.s_addr;
+			lhost = ((struct sockaddr_in*)(addr->addr))->sin_addr.s_addr;
+			lnetmask = ((struct sockaddr_in*)(addr->netmask))->sin_addr.s_addr;
 
-			if ((*host & *netmask) == (v_ip & *netmask))
+			if (netmask == 0)
+				continue;
+
+			if ((lhost & lnetmask) == (v_ip & lnetmask))
+			{
+				*host = lhost;
+				*netmask = lnetmask;
 				*adapter_result = alldevs;
+				return;
+			}
 		}
 	*adapter_result = NULL;
 }
