@@ -148,13 +148,13 @@
     <ClCompile Include="infect.c" />
     <ClCompile Include="command.c" />
     <ClCompile Include="ipc_manage.c" />
-    <ClCompile Include="ipc_manage.h" />
     <ClCompile Include="main.c" />
     <ClCompile Include="utils.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="act_header.h" />
     <ClInclude Include="infect.h" />
+	<ClInclude Include="ipc_manage.h" />
     <ClInclude Include="scan.h" />
     <ClInclude Include="commands.h" />
     <ClInclude Include="network_headers.h" />

