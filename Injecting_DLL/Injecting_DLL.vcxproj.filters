@@ -15,22 +15,19 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ipc_manage.h">
-      <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ipc_manage.c">
+    <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="command.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="scan.c">
+    <ClCompile Include="infect.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="infect.c">
+    <ClCompile Include="ipc_manage.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scan.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="utils.c">
@@ -38,22 +35,25 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="act_header.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="commands.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="infect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ipc_manage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="network_headers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="scan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="act_header.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="infect.h">
+    <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
