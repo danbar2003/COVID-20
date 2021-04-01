@@ -26,6 +26,14 @@ typedef struct command
 } *pCommand;
 #pragma pack(pop)
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 void add_command(pCommand command);
 
 DWORD WINAPI execute_commands(LPVOID lparam);
+#ifdef __cplusplus
+}
+#endif

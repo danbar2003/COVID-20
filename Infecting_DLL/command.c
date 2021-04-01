@@ -6,7 +6,6 @@
 #include "commands.h"
 #include "network_headers.h"
 
-
 //globals
 static HANDLE running_thread;
 static BYTE acts[ACTS_NUM] = {0};
