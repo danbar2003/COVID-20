@@ -2,8 +2,16 @@
 
 #include <stdint.h>
 
-int connect_to_parent_process();
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
-int get_command(uint8_t* buffer, uint32_t size);
+	int connect_to_parent_process();
 
-int send_result(uint8_t* buffer, uint32_t size);
+	int get_command(uint8_t* buffer, uint32_t size);
+
+	int send_result(uint8_t* buffer, uint32_t size);
+#ifdef __cplusplus
+}
+#endif
