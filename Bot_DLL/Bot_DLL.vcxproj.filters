@@ -15,33 +15,33 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\network.c">
+    <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ipc_manage.c">
+    <ClCompile Include="botnet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\communication.cpp">
+    <ClCompile Include="communication.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\main.cpp">
+    <ClCompile Include="ipc_manage.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\botnet.cpp">
+    <ClCompile Include="network.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\network.h">
+    <ClInclude Include="botnet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ipc_manage.h">
+    <ClInclude Include="Communication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\communication.h">
+    <ClInclude Include="ipc_manage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\botnet.h">
+    <ClInclude Include="network.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
