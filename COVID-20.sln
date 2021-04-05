@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Infecting", "Infecting\Infe
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "HolePunchingServer", "HolePunchingServer\HolePunchingServer.pyproj", "{32ED5F1A-6E61-4BA7-9E4C-BDE2937AF832}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "FakeWebsite", "FakeWebsite\FakeWebsite.pyproj", "{0C96A6C8-5B41-4B30-8C55-E7D59409C365}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,12 @@ Global
 		{32ED5F1A-6E61-4BA7-9E4C-BDE2937AF832}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{32ED5F1A-6E61-4BA7-9E4C-BDE2937AF832}.Release|x64.ActiveCfg = Release|Any CPU
 		{32ED5F1A-6E61-4BA7-9E4C-BDE2937AF832}.Release|x86.ActiveCfg = Release|Any CPU
+		{0C96A6C8-5B41-4B30-8C55-E7D59409C365}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C96A6C8-5B41-4B30-8C55-E7D59409C365}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0C96A6C8-5B41-4B30-8C55-E7D59409C365}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0C96A6C8-5B41-4B30-8C55-E7D59409C365}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C96A6C8-5B41-4B30-8C55-E7D59409C365}.Release|x64.ActiveCfg = Release|Any CPU
+		{0C96A6C8-5B41-4B30-8C55-E7D59409C365}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
