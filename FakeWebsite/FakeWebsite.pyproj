@@ -24,6 +24,7 @@
     <Compile Include="FakeWebsite.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="evil.rar" />
     <Content Include="index.html" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
