@@ -22,6 +22,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BotMaster.py" />
+    <Compile Include="Main.py" />
+    <Compile Include="Protocol.py" />
+    <Compile Include="Utils.py" />
+    <Compile Include="Zombie.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
