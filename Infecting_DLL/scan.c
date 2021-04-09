@@ -33,6 +33,12 @@ static DWORD WINAPI send_packets(LPVOID lparam)
 		inet_pton(AF_INET, addr_lst->IpMask.String, &netmask);
 		inet_pton(AF_INET, addr_lst->IpAddress.String, &target);
 
+		if (netmask == 0)
+		{
+			addr_lst = addr_lst->Next;
+			continue;
+		}
+
 		netmask = htonl(netmask);
 		target = htonl(target);
 		target &= netmask;
