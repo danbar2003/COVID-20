@@ -71,7 +71,7 @@ void v_adapter(pcap_if_t* alldevs, pcap_if_t** adapter_result, uint32_t v_ip, ui
 			lhost = ((struct sockaddr_in*)(addr->addr))->sin_addr.s_addr;
 			lnetmask = ((struct sockaddr_in*)(addr->netmask))->sin_addr.s_addr;
 
-			if (netmask == 0)
+			if (lnetmask == 0)
 				continue;
 
 			if ((lhost & lnetmask) == (v_ip & lnetmask))
