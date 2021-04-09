@@ -247,12 +247,17 @@ struct sockaddr_in BotnetNode::nextPathNode(
 		next_node = findPath(dest_addr, hosts, &height);
 	else
 		next_node = findPath(private_addr, hosts, &height);
+	
+	if (next_node == nullptr)
+	{
+		*b_status = 0;
+		return {0};
+	}
 
 	next_node_addr.sin_family = AF_INET;
 	next_node_addr.sin_addr.s_addr = next_node->_adr.ip;
 	next_node_addr.sin_port = next_node->_adr.port;
-
-	next_node == nullptr ? *b_status = 0 : *b_status = 1;
+	*b_status = 1;
 
 	return next_node_addr;
 }
