@@ -18,9 +18,6 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ipc_manage.h">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="ipc_manage.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -54,6 +51,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="infect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ipc_manage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

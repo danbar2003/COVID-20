@@ -94,7 +94,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)WpdPack\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>wpcap.lib;packet.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>wpcap.lib;packet.lib;iphlpapi.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -154,7 +154,7 @@
   <ItemGroup>
     <ClInclude Include="act_header.h" />
     <ClInclude Include="infect.h" />
-	<ClInclude Include="ipc_manage.h" />
+    <ClInclude Include="ipc_manage.h" />
     <ClInclude Include="scan.h" />
     <ClInclude Include="commands.h" />
     <ClInclude Include="network_headers.h" />
