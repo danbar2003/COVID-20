@@ -163,6 +163,9 @@ int scan()
 		pcap_close(fp);
 	}
 
+	memset((uint8_t*)active_hosts, MAX_HOSTS * sizeof(host), 0xff);
+	send_result(active_hosts, MAX_HOSTS * sizeof(host));
+
 	free(pAdapterInfo);
 	free(active_hosts);
 	pcap_freealldevs(alldevs);

