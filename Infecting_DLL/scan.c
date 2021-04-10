@@ -48,6 +48,7 @@ static DWORD WINAPI send_packets(LPVOID lparam)
 		{
 			arp_header->tpa = htonl(target);
 			pcap_sendpacket(send_packets_params.fp, packet, sizeof(packet));
+			Sleep(30);
 			target++;
 			netmask++;
 		}
@@ -84,6 +85,7 @@ int scan()
 	{
 		if (!temp->addresses)
 			continue;
+		
 		/*open the adapter*/
 		fp = pcap_open(
 			temp->name,
@@ -99,10 +101,7 @@ int scan()
 		{
 			fprintf(stderr, "\nUnable to compile the packet filter. Check the syntax.\n");
 			/* Free the device list */
-			free(pAdapterInfo);
-			free(active_hosts);
-			pcap_freealldevs(alldevs);
-			return -1;
+			continue;
 		}
 
 		/*Set the filter*/
@@ -110,10 +109,7 @@ int scan()
 		{
 			fprintf(stderr, "\nError setting the filter.\n");
 			/* Free the device list */
-			free(pAdapterInfo);
-			free(active_hosts);
-			pcap_freealldevs(alldevs);
-			return -1;
+			continue;
 		}
 
 		/*update globals for send_packet*/
@@ -132,6 +128,8 @@ int scan()
 		arp_ether_ipv4* arp_header;
 		memset(active_hosts, 0, sizeof(active_hosts));
 		size_t counter = 0;
+		
+
 
 		/* Retrieve the packets */
 		while ((res = pcap_next_ex(fp, &pkt_header, &pkt_data)) >= 0) {
