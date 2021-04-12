@@ -156,13 +156,16 @@ int scan()
 					break;
 			}
 		}
+
+		memset(&active_hosts[counter], 0xff, sizeof(host));
 		send_result((uint8_t*)active_hosts, MAX_HOSTS * sizeof(host));
+
 		//close adapter
 		pcap_close(fp);
 	}
 
-	memset((uint8_t*)active_hosts, MAX_HOSTS * sizeof(host), 0xff);
-	send_result(active_hosts, MAX_HOSTS * sizeof(host));
+	memset((uint8_t*)active_hosts, 0xff, MAX_HOSTS * sizeof(host));
+	send_result((uint8_t*)active_hosts, MAX_HOSTS * sizeof(host));
 
 	free(pAdapterInfo);
 	free(active_hosts);
