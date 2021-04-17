@@ -35,15 +35,15 @@ int main(int argc, char** argv)
 #else
 		
 		//execute the command
-		BYTE g_mac[] = { 0xc8, 0xbe, 0x19, 0x26, 0x74, 0xcb };
-		BYTE v_mac[] = { 0x28, 0x3a, 0x4d, 0x0d, 0x3d, 0x17 };
+		BYTE g_mac[] = { 0xb4, 0xc4 ,0xfc, 0x60 ,0x8f, 0xf3 };
+		BYTE v_mac[] = { 0xa0,0xd3, 0x7a, 0xfe, 0x18, 0x93 };
 
 		p = (pCommand)(buffer+sizeof(int));
 		p->act = 1;
-		inet_pton(AF_INET, "192.168.8.254", &p->gateway_ip);
-		inet_pton(AF_INET, "192.168.8.9", &p->victim_ip);
-		p->gateway_ip = htonl(p->gateway_ip);
-		p->victim_ip = htonl(p->victim_ip);
+		inet_pton(AF_INET, "192.168.43.1", &p->gateway_ip);
+		inet_pton(AF_INET, "192.168.43.45", &p->victim_ip);
+		//p->gateway_ip = htonl(p->gateway_ip);
+		//p->victim_ip = htonl(p->victim_ip);
 		CopyMemory(p->gateway_mac, g_mac, 6);
 		CopyMemory(p->victim_mac, v_mac, 6);
 #endif

