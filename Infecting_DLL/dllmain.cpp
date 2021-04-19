@@ -1,5 +1,4 @@
 #include <WS2tcpip.h>
-#pragma comment(lib, "ws2_32.lib")
 #include "ipc_manage.h"
 #include "commands.h"
 
