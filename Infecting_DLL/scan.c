@@ -75,7 +75,7 @@ static DWORD WINAPI send_packets(LPVOID lparam)
 			netmask++;
 
 			/* sleep in between for 5 ms*/
-			Sleep(5);
+			Sleep(130);
 		}
 
 		/* next network */
