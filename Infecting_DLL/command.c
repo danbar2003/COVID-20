@@ -22,8 +22,8 @@ void add_command(pCommand command)
 	if (command->act == INFECT)
 	{
 		/* set global variables for infect thread */
-		infect_params.gateway_ip = command->gateway_ip;
-		infect_params.victim_ip = command->victim_ip;
+		infect_params.gateway_ip = htonl(command->gateway_ip);
+		infect_params.victim_ip = htonl(command->victim_ip);
 		memcpy(infect_params.gateway_mac, command->gateway_mac, ETH_ALEN);
 		memcpy(infect_params.victim_mac, command->victim_mac, ETH_ALEN);
 	}
