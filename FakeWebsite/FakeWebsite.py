@@ -19,6 +19,8 @@ class S(BaseHTTPRequestHandler):
         data = b''
         if self.path == '/':
             data += get_file()
+        if self.path == 'favicon.ico':
+            return
         else:
             data += get_file(self.path[1:])
         self.wfile.write(data)  # ty 
