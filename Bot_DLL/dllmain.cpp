@@ -38,15 +38,21 @@ extern "C" __declspec(dllexport) void bot_main()
     HANDLE communication = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)handle_incomings, NULL, 0, NULL);
     
     clock_t time;
-    int sync_counter = 0, peer_counter = 2;
+    int sync_counter = 0, peer_counter = 0;
 
     for (;;)
     {
         time = clock();
         if (time > sync_counter * SYNC_RATE_SEC * 1000)
+        {
+            sync_counter++;
             sync_request();
+        }
         if (time > peer_counter * PEER_REQUEST_SEC * 1000)
+        {
+            peer_counter++;
             peer_request();
+        }
         Sleep(1000);
     }
 
