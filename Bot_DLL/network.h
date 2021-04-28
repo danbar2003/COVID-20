@@ -4,7 +4,7 @@
 #pragma comment(lib, "Ws2_32.lib")
 
 #define HOLE_PUNCHING_SERVER_PORT 3301
-#define HOLE_PUNCHING_SERVER_IP "15.237.26.178"
+#define HOLE_PUNCHING_SERVER_IP "13.36.167.219"
 
 enum PACK_TYPE
 {

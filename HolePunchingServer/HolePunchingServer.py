@@ -1,7 +1,5 @@
 import socket
 import struct
-import threading
-import schedule
 
 PORT = 3301
 
@@ -60,15 +58,45 @@ def udp_punch_hole(clients_lst, udp_sock):
 
 
 def main():
+    # create udp socket
     udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    # bind it to the UDP-PH port
     udp_sock.bind(('', PORT))
 
+    # set timeout for making sure 2 clients connecting within 20 seconds from one another
+    udp_sock.settimeout(20)
+
     while True:
-        data, adr = udp_sock.recvfrom(1024)
-        clients.append(adr)
-        print(adr)
-        if len(clients) == 2:
-            udp_punch_hole(clients, udp_sock)
+
+        try:
+            # wait for connection
+            data, adr = udp_sock.recvfrom(1024)
+
+            # log to the user client has just joined
+            print("client connected from", adr)
+
+            # add the client to the clients list
+            clients.append(adr)
+
+            # check if two clients are connected
+            if len(clients) == 2:
+
+                # check if both connecting from the same network
+                if clients[0][0] == clients[1][0]:
+
+                    # clear if they are already on the same net
+                    clients.clear()
+
+                # not on the same net
+                else:
+                    # udp punch hole
+                    udp_punch_hole(clients, udp_sock)
+
+        # if no connection has been received for 20 seconds
+        except Exception:
+
+            # clear clients list
             clients.clear()
 
 
