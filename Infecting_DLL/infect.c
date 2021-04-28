@@ -80,7 +80,7 @@ static DWORD WINAPI start_arp_spoofing(
 		pcap_sendpacket(infect_params.fp, rearping_packet, pack_size);
 		Sleep(4000);
 	}
-
+	
 	finished_infecting = 0;
 
 	return 0;
@@ -323,7 +323,7 @@ void infect()
 
 	/* start start_arp_spoofing thread */
 	HANDLE hThread;
-	hThread = CreateThread(NULL, 0, start_arp_spoofing, (LPVOID)&host, 0, NULL);F
+	hThread = CreateThread(NULL, 0, start_arp_spoofing, (LPVOID)&host, 0, NULL);
 	if (!hThread)
 	{
 		free(pAdapterInfo);
