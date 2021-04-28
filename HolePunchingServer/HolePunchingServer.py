@@ -96,6 +96,7 @@ def main():
         # if no connection has been received for 20 seconds
         except Exception:
 
+            print("timeout. clearing clients list")
             # clear clients list
             clients.clear()
 
