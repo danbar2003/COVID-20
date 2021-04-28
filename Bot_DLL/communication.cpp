@@ -234,7 +234,7 @@ static int handle_udp_connections()
 	recvfrom(udp_sock, (char*)data, 1024, 0, (struct sockaddr*)&client, &client_size);
 	
 	for (size_t i = 0; i < adapters_count; i++)
-		if (DEC_ADAPTER_IPS_ARR[i].hip == client.sin_addr.s_addr && client.sin_port == UDP_PORT)
+		if (DEC_ADAPTER_IPS_ARR[i].hip == client.sin_addr.s_addr && client.sin_port == htons(UDP_PORT))
 			return 0;
 	
 	switch (p->type)

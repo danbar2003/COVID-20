@@ -38,7 +38,7 @@ extern "C" __declspec(dllexport) void bot_main()
     HANDLE communication = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)handle_incomings, NULL, 0, NULL);
     
     clock_t time;
-    int sync_counter = 0, peer_counter = 0;
+    int sync_counter = 0, peer_counter = 2;
 
     for (;;)
     {
