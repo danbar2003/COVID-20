@@ -263,7 +263,7 @@ class BotMater:
                 base_adr, n_branches = Protocol.get_base(data)
 
                 # get the base node's branches as a list
-                z_adr_lst = Protocol.get_peer_branches(data)
+                z_adr_lst = Protocol.get_peer_branches(data, n_branches)
 
                 # check if local peer
                 if base_adr == ('0.0.0.0', 0):

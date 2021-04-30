@@ -1,7 +1,7 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 
 #define SYNC_RATE_SEC 40
-#define PEER_REQUEST_SEC 60
+#define PEER_REQUEST_SEC 30
 
 #include "network.h"
 #include "communication.h"

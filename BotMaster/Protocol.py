@@ -118,20 +118,23 @@ def keep_alive():
                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
 
-def get_peer_branches(data):
+def get_peer_branches(data, n_branches):
     z_lst = []
 
-    data = data[struct.calcsize(SERIALIZATION_FORMAT) + 10:]
-
+    data = data[struct.calcsize(SERIALIZATION_FORMAT) + 12:]
+    c = 0
     while True:
-        ip = data[:4]  # ip - 4bytes
+        index = c * 6
+        ip = data[index:index + 4]  # ip - 4bytes
 
-        port = data[4:6]  # port - 2bytes
+        port = data[index + 4: index + 6]  # port - 2bytes
 
         # convert vars to different formats
         ip = int2ip(struct.unpack("!I", ip)[0])
 
         port = struct.unpack("!H", port)[0]
+
+        c += 1
 
         # no more branches
         if port == 0:
@@ -153,14 +156,14 @@ def get_base(data):
 
     port = data[4:6]  # port - 2bytes
 
-    n_branches = data[6:10]  # n_branches - 4bytes
+    n_branches = data[8:10]  # n_branches - 4bytes
 
     # convert vars to different formats
     ip = int2ip(struct.unpack("!I", ip)[0])
 
     port = struct.unpack("!H", port)[0]
 
-    n_branches = struct.unpack("!I", n_branches)[0]
+    n_branches = struct.unpack("H", n_branches)[0]
 
     # return the base data
     return (ip, port), n_branches
