@@ -6,12 +6,12 @@
 #include <vector>
 #include <stdio.h>
 #include <winsock2.h>
-#pragma comment(lib, "ws2_32.lib")
 
+#pragma pack(push, 1)
 typedef struct
 {
 	adr host;
-	size_t n_branches;
+	short n_branches;
 } tree_ext;
 
 class BotnetNode;
@@ -21,6 +21,7 @@ typedef struct
 	adr src_addr;
 	uint16_t original_id;
 } command_fowarding;
+#pragma pack(pop)
 
 class BotnetNode
 {

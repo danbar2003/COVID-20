@@ -32,7 +32,7 @@ void BotnetNode::sendNetTree(
 	/* fill the packet with data*/
 	default_pack->type = NETWORK_SYNC_REPLY;
 	extention->host = _adr;
-	extention->n_branches = _branches.size();
+	extention->n_branches = (short)_branches.size();
 	for (BotnetNode* node : _branches)
 	{
 		memcpy(branches_data, &node->_adr, sizeof(adr));
@@ -177,7 +177,7 @@ void BotnetNode::handleSync(
 
 	/* add all host's sub peers to a list */
 	peers_nodes.clear();
-	for (size_t i = 0; i < base->n_branches; i++)
+	for (short i = 0; i < base->n_branches; i++)
 	{
 		peers_nodes.push_back(*peer);
 		peer++;
