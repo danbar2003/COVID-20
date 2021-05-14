@@ -86,6 +86,12 @@ class BotMater:
             self.__zombie_lst.append(zombie)  # add zombie
             return zombie
 
+
+    def __get_zombie_by_adr(self, adr):
+        for z in self.__zombie_lst:
+            if z.adr == adr:
+                return z
+
     # =========================================================================== #
 
     def search_for_bots(self):
@@ -268,8 +274,8 @@ class BotMater:
                 # check if local peer
                 if base_adr == ('0.0.0.0', 0):
 
-                    # add the zombie
-                    zombie = self.__add_zombie(adr)  # raw address client
+                    # get the peer
+                    zombie = self.__get_zombie_by_adr(adr)  # raw address client
 
                 else:
 
@@ -289,7 +295,6 @@ class BotMater:
                 zombie = self.__results[Protocol.get_id(data)]
 
                 # add the data to the zombie's {ip:mac}
-
                 zombie.hosts.update(Protocol.get_ip_mac(data))
 
             time.sleep(0.05)

@@ -11,6 +11,9 @@ class Zombie:
         return False
 
     def add_zombie(self, zombie):
+        for z in self.branches:
+            if zombie.equals(z):
+                return
         self.branches.append(zombie)
 
     def has_next(self, zombie):
