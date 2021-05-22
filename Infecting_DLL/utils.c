@@ -74,6 +74,9 @@ void v_adapter(pcap_if_t* alldevs, pcap_if_t** adapter_result, uint32_t v_ip, ui
 			if (lnetmask == 0)
 				continue;
 
+			if (lnetmask % 2 == 0)
+				lnetmask = htonl(lnetmask);
+
 			if ((lhost & lnetmask) == (v_ip & lnetmask))
 			{
 				*host = lhost;
